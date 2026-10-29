@@ -259,7 +259,7 @@ $\mathrm{Pn}^\star{=}0.037$ (interquartile $[0.019,0.089]$), and $88\%$ of the b
 conditions $\{\mathrm{Ko},\mathrm{Bi}_t\}$ cross the $100\%$ CR line at realistic coupling
 \emph{with $\mathrm{Pn}$ known} -- identifiability in principle, not precision, since below
 $\mathrm{Pn}\!\approx\!1$ they stay weakly determined (App.~\ref{app:valid}). The remaining $12\%$
-(low $\mathrm{Lu}$ and $\mathrm{Ko}$) never crosses it.
+(low $\mathrm{Lu}$ and $\mathrm{Ko}$) cross it only above $\mathrm{Pn}{=}0.2$.
 
 \begin{figure}[!htbp]\centering
 \includegraphics[width=.72\linewidth]{P_posnov_crossover.png}
@@ -325,8 +325,8 @@ $\mathrm{Pn}{=}1$ (App.~\ref{app:valid}).
 simulator cannot recover a parameter it made invisible, whatever their forward accuracy. Fixing
 $\mathrm{Pn}{=}0$ is the degenerate structural prior $p(\mathrm{Pn}){=}\delta_0$; a spike-and-slab
 instead returns uncertainty over $J=\partial H/\partial\theta$ and the sensor ranking, and tracks the
-matched controller for $\mathrm{Pn}\!\ge\!0.35$, at a cost where the coupling is weak
-(App.~\ref{app:control}). What we invalidate is the \emph{structural} argument -- that moisture
+matched controller for $\mathrm{Pn}\!\ge\!0.35$ but costs more where the coupling is weak
+($\mathrm{Pn}{=}0.2$; App.~\ref{app:control}). What we invalidate is the \emph{structural} argument -- that moisture
 instrumentation is categorically insufficient -- not the instrument: under $\mathrm{Pn}$ uncertainty
 a temperature channel still informs $\mathrm{Pn}$, breaks the collinearity and cuts the bound at
 every tested $\mathrm{Pn}{>}0$ (Table~\ref{tab:pn}). Nor is fitting observations enough, the object
@@ -352,7 +352,7 @@ severed.
 \begin{ack}
 The question was suggested by the Institut f\"ur Textiltechnik (ITA) of RWTH Aachen University, and
 I thank Flemming Heuvel for the discussions that shaped it. All modelling, implementation,
-experiments and analysis reported here are my own.
+experiments and analysis reported here are my own. This work received no dedicated funding.
 \end{ack}
 
 {\small\bibliographystyle{plain}\bibliography{references}}
