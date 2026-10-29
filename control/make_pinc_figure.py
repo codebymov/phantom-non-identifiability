@@ -1,7 +1,10 @@
 """Figure for the PINC-NMPC on the real Luikov system (constraint satisfaction vs PI)."""
 from __future__ import annotations
+
 from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np

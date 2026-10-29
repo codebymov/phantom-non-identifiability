@@ -36,7 +36,10 @@ an additional Pe * d/dxi_machine convective term appears.
 from dataclasses import dataclass
 
 
-@dataclass
+# frozen: these are physical parameters, i.e. a value object. Freezing makes the shared
+# LuikovParams() default in the control plants safe, and makes instances hashable so solver
+# calls can be memoised. Nothing in the codebase mutated an instance.
+@dataclass(frozen=True)
 class LuikovParams:
     """Dimensionless governing parameters for the 1D Luikov system.
 

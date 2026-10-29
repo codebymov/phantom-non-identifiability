@@ -25,7 +25,7 @@ def subspace_angle(A: np.ndarray, B: np.ndarray, k: int = 2) -> float:
     correct answer: nothing about the reference orientation is recovered.
     """
     def top_right(M):
-        U, s, Vt = np.linalg.svd(M, full_matrices=False)
+        _U, s, Vt = np.linalg.svd(M, full_matrices=False)
         r = int((s > 1e-12 * max(s.max(), 1e-300)).sum())
         if r == 0:
             return None

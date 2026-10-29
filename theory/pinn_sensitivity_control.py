@@ -61,7 +61,7 @@ def pinn_functionals(model, theta, xi, tau, grad_param=None):
     cols = [torch.tensor(XI.ravel(), dtype=torch.float32),
             torch.tensor(TAU.ravel(), dtype=torch.float32)]
     scal = {}
-    for name, j in sorted(PARAM_IDX.items(), key=lambda kv: kv[1]):
+    for name, _j in sorted(PARAM_IDX.items(), key=lambda kv: kv[1]):
         v = torch.tensor(float(theta[name]), dtype=torch.float32)
         if name == grad_param:
             v = v.clone().requires_grad_(True)
@@ -77,7 +77,6 @@ def pinn_dlog(model, theta, xi, tau, name):
     """d<T>/dlog p and d<M>/dlog p by autograd, as vectors over tau."""
     Tb, Mb, scal = pinn_functionals(model, theta, xi, tau, grad_param=name)
     p = scal[name]
-    dT = torch.autograd.grad(Tb.sum(), p, retain_graph=True)[0] * p
     # per-sample derivative: use jacobian via repeated grad on each entry (cheap: len(tau) small)
     gT = np.array([torch.autograd.grad(Tb[i], p, retain_graph=True)[0].item() for i in range(len(tau))])
     gM = np.array([torch.autograd.grad(Mb[i], p, retain_graph=True)[0].item() for i in range(len(tau))])
@@ -161,7 +160,8 @@ def main() -> None:
           "  resolution limit of the network.")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(dict(ckpt=str(CKPT), theta0=THETA0, leak_floor=float(floor),
+    OUT.write_text(json.dumps(dict(ckpt=str(CKPT.relative_to(ROOT)), theta0=THETA0,
+                                   leak_floor=float(floor),
                                    pn_vs_floor=pn_rows,
                                    fwd_relL2=dict(T=rel(Tb, Tref), M=rel(Mb, Mref)),
                                    sensitivities=out), indent=2))

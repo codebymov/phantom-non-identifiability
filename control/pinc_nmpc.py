@@ -27,6 +27,7 @@ import torch
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from luikov_plant import LuikovPlant  # noqa: E402
+
 from kibapap.physics.luikov import LuikovParams  # noqa: E402
 
 RNG = np.random.default_rng(0)
@@ -73,8 +74,9 @@ class Surrogate(torch.nn.Module):
 def train(Z, Y):
     m = Surrogate()
     with torch.no_grad():
-        m.xmu.copy_(torch.tensor(Z.mean(0), dtype=torch.float32)); m.xsd.copy_(torch.tensor(Z.std(0) + 1e-8, dtype=torch.float32))
-        m.ymu.copy_(torch.tensor(Y.mean(0), dtype=torch.float32)); m.ysd.copy_(torch.tensor(Y.std(0) + 1e-8, dtype=torch.float32))
+        f32 = torch.float32
+        m.xmu.copy_(torch.tensor(Z.mean(0), dtype=f32)); m.xsd.copy_(torch.tensor(Z.std(0) + 1e-8, dtype=f32))
+        m.ymu.copy_(torch.tensor(Y.mean(0), dtype=f32)); m.ysd.copy_(torch.tensor(Y.std(0) + 1e-8, dtype=f32))
     Zt = torch.tensor(Z, dtype=torch.float32); Yt = torch.tensor(Y, dtype=torch.float32)
     opt = torch.optim.Adam(m.net.parameters(), lr=2e-3)
     for _ in range(4000):
@@ -103,7 +105,8 @@ def nmpc_move(m, s, u_prev, Np=25, Nc=5, q=1.0, r=1e-3, pen=200.0, iters=60):
     return float(np.clip(u0, max(0.0, u_prev - DU_MAX), min(U_MAX, u_prev + DU_MAX)))
 
 
-def pid(e, integ, e_prev, Kp=12.0, Ki=1.5, Kd=0.0):   # PI (industrial standard); Kd=0 (fast surface, small dtau)
+# PI control (industrial standard); Kd=0 because the surface responds fast at small dtau.
+def pid(e, integ, e_prev, Kp=12.0, Ki=1.5, Kd=0.0):
     integ += e * DTAU
     u = Kp * e + Ki * integ + Kd * (e - e_prev) / DTAU
     return float(np.clip(u, 0, U_MAX)), integ
@@ -148,7 +151,8 @@ def main():
         t0 = time.time(); log = run(kind, mm); wall = time.time() - t0
         mt = metrics(log); out[name] = log
         print(f"{name:10s} surf max {mt['surf_max']:.3f} final {mt['surf_final']:.3f}  "
-              f"scorch-viol {mt['tcrit_viol']:.3f} (limit {T_CRIT})  ({wall:.1f}s, {wall/len(log['u'])*1000:.0f}ms/step)")
+              f"scorch-viol {mt['tcrit_viol']:.3f} (limit {T_CRIT})  "
+              f"({wall:.1f}s, {wall/len(log['u'])*1000:.0f}ms/step)")
     try:
         path = export_onnx(m); print(f"\nexported PINC -> {path} (for MATLAB importNetworkFromONNX)")
     except Exception as e:

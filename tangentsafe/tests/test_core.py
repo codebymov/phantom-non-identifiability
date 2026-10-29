@@ -9,7 +9,7 @@ import torch
 
 from kibapap.physics import LuikovParams, solve_luikov_fd
 from tangentsafe.core.solvers.luikov_torch import solve_luikov_torch
-from tangentsafe.core.tangent import (NOMINAL, jacobian_ad, jacobian_fd, jacobian_u_ad, jvp)
+from tangentsafe.core.tangent import NOMINAL, jacobian_ad, jacobian_fd, jacobian_u_ad, jvp
 
 MIRROR_TOL = 1e-11      # mirror vs LAPACK reference: machine precision, NOT bit-identity
 ADFD_TOL = 1e-5         # AD vs central differences: limited by FD truncation O(d^2)

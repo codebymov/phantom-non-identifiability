@@ -13,7 +13,7 @@ L-BFGS from initialization is unreliable.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import torch
@@ -21,13 +21,13 @@ from torch import nn
 from tqdm import tqdm
 
 from kibapap.models.losses import (
-    pde_residuals,
     boundary_residuals,
-    initial_residuals,
     gpinn_residual_gradient,
+    initial_residuals,
+    pde_residuals,
 )
 from kibapap.physics.luikov import LuikovParams
-from kibapap.training.sampler import sample_collocation, sample_boundary, sample_initial
+from kibapap.training.sampler import sample_boundary, sample_collocation, sample_initial
 
 
 @dataclass

@@ -1,2 +1,3 @@
-from tangentsafe.audit.metrics import tangent_metrics, subspace_angle, fisher_from_jacobian
-__all__ = ["tangent_metrics", "subspace_angle", "fisher_from_jacobian"]
+from tangentsafe.audit.metrics import fisher_from_jacobian, subspace_angle, tangent_metrics
+
+__all__ = ["fisher_from_jacobian", "subspace_angle", "tangent_metrics"]

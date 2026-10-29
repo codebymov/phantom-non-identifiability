@@ -60,7 +60,7 @@ def main() -> None:
                     np.linalg.norm(J / sig[:, None], axis=0).max()).sum())
         pk, pb = PAPER_CR[pn]
         f = lambda v: "inf" if v is None else f"{v:.1f}"
-        print(f"{pn:5.2f} {f(ko):>11} {str(pk):>7} {f(bit):>13} {str(pb):>7} {rank:>5}")
+        print(f"{pn:5.2f} {f(ko):>11} {pk!s:>7} {f(bit):>13} {pb!s:>7} {rank:>5}")
         rows.append(dict(pn=pn, cr_Ko=ko, cr_Bit=bit, rank=rank,
                          paper_cr_Ko=pk, paper_cr_Bit=pb,
                          col_norms=dict(zip(NAMES, cn.tolist()))))
@@ -81,7 +81,7 @@ def main() -> None:
         mets[str(pn)] = m
         print(f"{pn:10.2f} {fwd:10.4f} {m['E_J']:8.4f} {m['E_sigma']:8.4f} "
               f"{m['subspace_angle_deg']:10.2f} {m['rank_surrogate']:6d}/{m['rank_reference']:<6d} "
-              f"{str(m['order_agrees']):>7}")
+              f"{m['order_agrees']!s:>7}")
     print("  The forward error stays small while the subspace angle is large and the rank verdict")
     print("  is wrong: forward L2 does not certify the tangent map.")
 

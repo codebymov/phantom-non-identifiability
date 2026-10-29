@@ -55,7 +55,8 @@ class Net(torch.nn.Module):
         super().__init__()
         self.shared, self.feed = shared_trunk, feed_T_to_M
         mk = lambda i, o: torch.nn.Sequential(
-            *sum([[torch.nn.Linear(i if k == 0 else w, w), torch.nn.Tanh()] for k in range(d)], []),
+            *[layer for k in range(d)
+              for layer in (torch.nn.Linear(i if k == 0 else w, w), torch.nn.Tanh())],
             torch.nn.Linear(w, o))
         if shared_trunk:
             self.trunk = mk(6, w)

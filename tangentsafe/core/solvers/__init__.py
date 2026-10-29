@@ -1,2 +1,3 @@
-from tangentsafe.core.solvers.luikov_torch import solve_luikov_torch, channels_torch
-__all__ = ["solve_luikov_torch", "channels_torch"]
+from tangentsafe.core.solvers.luikov_torch import channels_torch, solve_luikov_torch
+
+__all__ = ["channels_torch", "solve_luikov_torch"]

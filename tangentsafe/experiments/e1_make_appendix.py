@@ -36,12 +36,13 @@ def main() -> None:
         # The baseline has one non-converged seed, so its mean is not a summary of a stable
         # quantity; report its median and flag it rather than a mean whose s.d. exceeds it.
         if k == "baseline":
-            leak = "$%.1f\\%%^\\dagger$" % statistics.median(per)
+            leak = f"${statistics.median(per):.1f}\\%^\\dagger$"
         else:
-            leak = "$%.1f\\pm%.1f\\%%$" % (a["ratio_mean"] * 100, a["ratio_sd"] * 100)
-        rows.append("%s & $%.3f\\pm%.3f$ & $%.3f\\pm%.3f$ & $%.2f$ & %s & $%.0f\\%%$\\\\"
-                    % (LABEL[k], a["fwd_mean"], a["fwd_sd"], a["dM_mean"], a["dM_sd"],
-                       a["dT_mean"], leak, a["dM_mean"] / true06 * 100))
+            leak = f'${a["ratio_mean"] * 100:.1f}\\pm{a["ratio_sd"] * 100:.1f}\\%$'
+        rows.append(
+            f'{LABEL[k]} & ${a["fwd_mean"]:.3f}\\pm{a["fwd_sd"]:.3f}$ &'
+            f' ${a["dM_mean"]:.3f}\\pm{a["dM_sd"]:.3f}$ & ${a["dT_mean"]:.2f}$ &'
+            f' {leak} & ${a["dM_mean"] / true06 * 100:.0f}\\%$\\\\')
 
     caption = (
         "None of the tested objectives or architectures restores the severed pathway. All arms "
@@ -55,13 +56,13 @@ def main() -> None:
         "quantity and its denominator is itself unreliable; the median is given instead."
         % (nseed, true06))
 
-    tab = ("\\begin{table}[h]\\centering\\small\n"
-           "\\caption{%s}\n\\label{tab:e1}\n"
-           "\\begin{tabular}{lccccc}\\toprule\n"
-           "arm & fwd rel-$L_2$ & $\\|\\partial_{\\log\\mathrm{Ko}}\\langle M\\rangle\\|$ & "
-           "$\\|\\partial_{\\log\\mathrm{Ko}}\\langle T\\rangle\\|$ & leakage & vs.\\ true"
-           "\\\\\\midrule\n%s\n\\bottomrule\\end{tabular}\n\\end{table}\n"
-           % (caption, "\n".join(rows)))
+    tab = ("\\begin{{table}}[h]\\centering\\small\n"
+           "\\caption{{{}}}\n\\label{{tab:e1}}\n"
+           "\\begin{{tabular}}{{lccccc}}\\toprule\n"
+           "arm & fwd rel-$L_2$ & $\\|\\partial_{{\\log\\mathrm{{Ko}}}}\\langle M\\rangle\\|$ & "
+           "$\\|\\partial_{{\\log\\mathrm{{Ko}}}}\\langle T\\rangle\\|$ & leakage & vs.\\ true"
+           "\\\\\\midrule\n{}\n\\bottomrule\\end{{tabular}}\n\\end{{table}}\n"
+           .format(caption, "\n".join(rows)))
     OUT_TAB.write_text(tab)
     print(tab)
 

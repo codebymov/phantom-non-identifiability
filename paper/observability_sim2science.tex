@@ -124,6 +124,8 @@ inherited physics from a dead input, and no tested loss or architecture restores
 same severed path removes the actuator's authority in closed loop. Throughout we validate the chain
 end to end -- physical mass-flux operator, per-channel likelihood, Cram\'er-Rao against Monte Carlo, a
 withheld instrument, and the joint five-parameter problem, which we report as \emph{not} well posed.
+Code, the JSON artefact behind every number, and this paper's source:
+\url{https://github.com/codebymov/phantom-non-identifiability}.
 
 \section{Setup}\label{sec:setup}
 \paragraph{Simulator.} On $\xi\in[0,1]$ (through-thickness, $\xi{=}0$ the hot-air surface) and
@@ -255,7 +257,7 @@ weakly determined.
 coupling: unidentifiable at $\mathrm{Pn}{=}0$, full rank at every tested $\mathrm{Pn}{>}0$.
 \textbf{(b)} The failure is silent. The reduced model, calibrated over $(\mathrm{Lu},\mathrm{Bi}_m)$
 against the same noisy moisture data, passes a $\chi^2$ goodness-of-fit test up to $\mathrm{Pn}{=}0.35$
-while returning the phantom null throughout. Between the crossover ($0.099$ at the nominal $\theta$)
+while returning the phantom null throughout. Between the crossover ($0.0996$ at the nominal $\theta$)
 and the top of that band a practitioner has no signal that anything is wrong.}
 \label{fig:cross}
 \end{figure}
@@ -286,7 +288,7 @@ $p$-value is $0.44$ and the calibrated discrepancy $0.2\%$, down from $11.9\%$ -
 bias in $\mathrm{Lu}$, pulled from $0.5$ to $0.33$, while the Jacobian's sensitive subspace rotates by
 $68^\circ$ and the sensitivity ordering inverts. Throughout, the reduced model reports
 $\mathrm{rank}(S)=2$, $\mathrm{CR}=\infty$ and ``buy a temperature sensor''. The window runs from
-$\mathrm{Pn}^\star{=}0.099$ to $0.35$, overlapping the assumed range on $[0.2,0.35]$: goodness of fit
+$\mathrm{Pn}^\star{=}0.0996$ to $0.35$, overlapping the assumed range on $[0.2,0.35]$: goodness of fit
 misses the problem because the misspecification is invisible in the observables and lethal only in
 the Jacobian.
 
@@ -552,11 +554,11 @@ coupling and are excluded from the regret claim.}
 \label{tab:ctrl}
 \begin{tabular}{lcccccc}\toprule
 $\mathrm{Pn}$ (truth) & reduced $J$ & matched $J$ & uncertain $J$ & regret & $u$ red./matched & control-sens.\ $T$\\\midrule
-$0.10^\dagger$ & $1.007$ & $0.898$ & $0.911$ & $1.1\times$ & $1.18 / 1.24$ & $0.025$\\
-$0.20$ & $0.061$ & $0.042$ & $0.087$ & $1.4\times$ & $1.16 / 1.20$ & $0.022$\\
-$0.35$ & $0.751$ & $0.095$ & $0.093$ & $\mathbf{8.0\times}$ & $1.13 / 0.87$ & $0.019$\\
+$0.10^\dagger$ & $1.007$ & $0.898$ & $0.911$ & $1.1\times$ & $1.18 / 1.23$ & $0.025$\\
+$0.20$ & $0.060$ & $0.042$ & $0.087$ & $1.4\times$ & $1.16 / 1.19$ & $0.022$\\
+$0.35$ & $0.751$ & $0.094$ & $0.093$ & $\mathbf{8.0\times}$ & $1.13 / 0.87$ & $0.019$\\
 $0.50$ & $3.103$ & $0.261$ & $0.246$ & $11.9\times$ & $1.11 / 0.63$ & $0.017$\\
-$0.60$ & $5.266$ & $0.420$ & $0.403$ & $12.5\times$ & $1.09 / 0.52$ & $0.016$\\
+$0.60$ & $5.267$ & $0.420$ & $0.403$ & $12.5\times$ & $1.09 / 0.52$ & $0.016$\\
 $0.80^\dagger$ & $10.460$ & $0.924$ & $0.884$ & $11.3\times$ & $1.07 / 0.35$ & $0.016$\\
 \bottomrule\end{tabular}
 \end{table}

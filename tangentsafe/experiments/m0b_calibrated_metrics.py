@@ -72,7 +72,7 @@ def main() -> None:
         rows[str(pn)] = m
         print(f"{pn:5.2f} {f_raw:8.4f} {f_cal:10.4f} {Lu_f:7.3f} {Bim_f:9.3f} "
               f"{m['subspace_angle_deg']:10.2f} {m['E_J']:7.3f} "
-              f"{m['rank_surrogate']:3d}/{m['rank_reference']:<2d} {str(m['order_agrees']):>7}")
+              f"{m['rank_surrogate']:3d}/{m['rank_reference']:<2d} {m['order_agrees']!s:>7}")
 
     print("\n  Calibration removes most of the forward discrepancy while the tangent map stays")
     print("  wrong: that pairing, not the raw error, is what a validation exercise would see.")

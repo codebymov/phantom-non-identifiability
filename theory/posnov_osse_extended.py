@@ -28,8 +28,17 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import least_squares
 
-from theory.observe import (FRAC, K_DEFAULT, NAMES4, NAMES5, channels, fisher,
-                            sample_times, sigmas, solve)
+from theory.observe import (
+    FRAC,
+    K_DEFAULT,
+    NAMES4,
+    NAMES5,
+    channels,
+    fisher,
+    sample_times,
+    sigmas,
+    solve,
+)
 
 THETA_TRUE = [0.5, 2.0, 1.0, 1.0]          # Lu, Ko, Bi_t, Bi_m
 PN_TRUE = 0.6
@@ -124,7 +133,7 @@ def main() -> None:
                           bounds=(lo, hi), max_nfev=2000)
         ests.append(np.exp(r.x)); costs.append(float(r.cost))
     ests = np.array(ests)
-    true5 = np.array(THETA_TRUE + [PN_TRUE])
+    true5 = np.array([*THETA_TRUE, PN_TRUE])
     med = np.median(ests, 0)
     print(f"  {'param':>6} {'true':>6} {'median':>8} {'IQR':>16} {'median |err|':>13}")
     joint = {}

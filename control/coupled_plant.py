@@ -30,16 +30,17 @@ from __future__ import annotations
 import numpy as np
 from scipy.linalg import solve_banded
 
+from control.luikov_plant import LuikovPlant
 from kibapap.physics.fd_solver import _build_d2_operator
 from kibapap.physics.luikov import LuikovParams
-
-from control.luikov_plant import LuikovPlant
 
 
 class CoupledLuikovPlant(LuikovPlant):
     """LuikovPlant plus the Lu*Pn*d2T/dxi2 term in the moisture balance."""
 
-    def __init__(self, params: LuikovParams = LuikovParams(), n_x: int = 101, dtau: float = 0.01):
+    # LuikovParams is a frozen value object, so sharing one default instance is safe.
+    def __init__(self, params: LuikovParams = LuikovParams(),  # noqa: B008
+                 n_x: int = 101, dtau: float = 0.01):
         super().__init__(params, n_x, dtau)
         h = 1.0 / (n_x - 1)
         # the same thermal second-derivative bands the parent used to build ab_T

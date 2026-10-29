@@ -34,8 +34,7 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import least_squares
 
-from theory.observe import (FRAC, K_DEFAULT, NAMES4, channels, fisher,
-                            sample_times, solve)
+from theory.observe import FRAC, K_DEFAULT, NAMES4, channels, fisher, sample_times, solve
 
 THETA_TRUE = [0.5, 2.0, 1.0, 1.0]            # Lu, Ko, Bi_t, Bi_m
 BOX_LO = [0.2, 1.0, 0.5, 0.5]

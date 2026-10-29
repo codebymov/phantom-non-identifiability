@@ -45,7 +45,7 @@ def jacobian_ad(theta: dict, params=("Lu", "Ko", "Bi_t", "Bi_m"), K=40, with_T=F
             for n in THETA_NAMES}
     H = _observe([vals[n] for n in THETA_NAMES], K=K, with_T=with_T, n_x=n_x, n_t=n_t, u=u)
     cols = []
-    for j, name in enumerate(params):
+    for _j, name in enumerate(params):
         grads = torch.autograd.grad(H, vals[name], grad_outputs=torch.eye(H.numel(), dtype=DTYPE),
                                     retain_graph=True, is_grads_batched=True)[0]
         cols.append(grads.detach().numpy() * float(theta[name]))   # chain rule to d/dlog

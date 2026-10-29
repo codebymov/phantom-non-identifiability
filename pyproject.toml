@@ -24,5 +24,49 @@ demo = ["streamlit>=1.30", "pillow>=10.0"]
 where = ["src"]
 
 [tool.ruff]
-line-length = 100
+# 110 rather than 100: the numerical code was written to ~100 and overshoots by 1-5 characters in
+# about 180 places. Raising the bound makes the limit enforceable instead of permanently violated.
+line-length = 110
 target-version = "py310"
+extend-exclude = [".diaglib", "dist", "external", "control/matlab"]
+
+[tool.ruff.lint]
+# Chosen for a numerical research codebase: correctness and import hygiene are enforced, cosmetic
+# rewrites of working numerical code are not.
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "NPY", "PL"]
+ignore = [
+    # dict(a=1, b=2) builds JSON payloads throughout, where the keyword form reads closer to the
+    # artefact schema than a brace literal. Deliberate.
+    "C408",
+    # `a = 1; b = 2` for grouped numerical assignments is used pervasively and on purpose; it keeps
+    # related scalars on one line. Rewriting ~310 sites would be churn with no readability gain.
+    "E702", "E703",
+    # Lambdas are idiomatic for one-line objective/residual expressions in this code.
+    "E731",
+    # Deferred imports are intentional: heavy or optional dependencies (torch, streamlit, pyplot)
+    # are imported inside the function that needs them so light paths stay fast.
+    "PLC0415",
+    # Research drivers are linear experiment scripts: many locals, branches and literals by nature.
+    "PLR0912", "PLR0913", "PLR0914", "PLR0915", "PLR0917", "PLR2004", "PLW2901",
+    # zip(strict=) would be a genuine robustness win (silent truncation is a real bug class) but
+    # changes runtime behaviour at ~56 call sites. Tracked as a follow-up, not a pre-deadline edit.
+    "B905",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Experiment drivers define closures inside sweep loops and consume them in the same iteration,
+# which B023 cannot see. Every site was checked by hand; none escapes its iteration.
+"theory/*.py" = ["B023"]
+"control/*.py" = ["B023"]
+"tangentsafe/experiments/*.py" = ["B023"]
+# This module emits a LaTeX table caption that is full of literal braces, so %-formatting is
+# correct and str.format would require doubling every one of them.
+"tangentsafe/experiments/e1_make_appendix.py" = ["B023", "UP031"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "tangentsafe/tests"]
+markers = [
+    "slow: runs for minutes or more; excluded from the default CI tier",
+    "regression: asserts a published number against its committed artefact",
+]
+addopts = "-q --strict-markers"

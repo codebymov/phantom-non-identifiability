@@ -123,7 +123,7 @@ def main() -> None:
         sobol=dict(n=int(good.sum()), quantiles=dict(zip(["p5","p25","p50","p75","p95"], q.tolist())),
                    min=float(xs[good].min()), max=float(xs[good].max()),
                    frac_below_0p2=float((xs[good] < 0.2).mean())),
-        power_law=dict(coef=coef.tolist(), terms=["const"] + ORDER,
+        power_law=dict(coef=coef.tolist(), terms=["const", *ORDER],
                        fit_err_pct=dict(median=float(np.median(rel)), max=float(rel.max())))),
         indent=2))
     print(f"\nsaved {OUT}")

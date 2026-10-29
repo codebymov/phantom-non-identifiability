@@ -53,7 +53,7 @@ def residual(theta, pn, n_x, n_t, quad="mean"):
     s = solve(theta, pn, n_x, n_t)
     p = s.params
     q = -p.Lu * (p.Bi_m * s.M[:, 0] + p.Pn * p.Bi_t * (s.T[:, 0] - 1.0))
-    if quad == "mean":
+    if quad == "mean":  # noqa: SIM108  (the ternary form runs past the line limit)
         Mbar = s.M.mean(1)                                     # what channels() observes
     else:
         Mbar = np.trapezoid(s.M, np.linspace(0.0, 1.0, s.M.shape[1]), axis=1)
@@ -67,8 +67,8 @@ def main() -> None:
     labels = [f"{nx}x{nt}" for nx, nt in GRIDS]
     print(f"theta={THETA0}   grids: {labels[0]} (paper), {labels[1]} (2x space), "
           f"{labels[2]} (4x time)\n")
-    print(f"{'Pn':>6} | " + " ".join(f"{l + ' mean':>16}" for l in labels)
-          + " | " + " ".join(f"{l + ' trapz':>17}" for l in labels))
+    print(f"{'Pn':>6} | " + " ".join(f"{lab + ' mean':>16}" for lab in labels)
+          + " | " + " ".join(f"{lab + ' trapz':>17}" for lab in labels))
     for pn in PN_GRID:
         m = [residual(THETA0, pn, nx, nt, "mean") for nx, nt in GRIDS]
         t = [residual(THETA0, pn, nx, nt, "trapz") for nx, nt in GRIDS]

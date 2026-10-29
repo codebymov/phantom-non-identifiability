@@ -23,6 +23,7 @@ Run:  .venv/bin/python control/nmpc_demo.py
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import numpy as np
@@ -83,8 +84,9 @@ def train_surrogate():
                 break
     Z = np.array(Z); Y = np.array(Y)
     m = Surrogate()
-    m.xmu = torch.tensor(Z.mean(0), dtype=torch.float32); m.xsd = torch.tensor(Z.std(0) + 1e-6, dtype=torch.float32)
-    m.ymu = torch.tensor(Y.mean(0), dtype=torch.float32); m.ysd = torch.tensor(Y.std(0) + 1e-6, dtype=torch.float32)
+    f32 = torch.float32
+    m.xmu = torch.tensor(Z.mean(0), dtype=f32); m.xsd = torch.tensor(Z.std(0) + 1e-6, dtype=f32)
+    m.ymu = torch.tensor(Y.mean(0), dtype=f32); m.ysd = torch.tensor(Y.std(0) + 1e-6, dtype=f32)
     Zt = torch.tensor(Z, dtype=torch.float32); Yt = torch.tensor(Y, dtype=torch.float32)
     opt = torch.optim.Adam(m.net.parameters(), lr=2e-3)
     for _ in range(3000):
@@ -167,7 +169,7 @@ def main():
     m, val = train_surrogate(); print(f"  surrogate 1-step val MSE = {val:.3e}\n")
     out = {}
     for name, ctrl, mm in [("PID", "pid", None), ("surrogate-NMPC", "nmpc", m)]:
-        import time; t0 = time.time()
+        t0 = time.time()
         log, tg = run(ctrl, mm); wall = time.time() - t0
         mt = metrics(log, log["w"])
         out[name] = (log, tg)

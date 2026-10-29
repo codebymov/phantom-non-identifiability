@@ -17,6 +17,8 @@ control/    coupled plant, input-Jacobian sweep, closed-loop MPC study
 tangentsafe/ surrogate tangent-map audit and the loss/architecture arms
 src/kibapap/ the Luikov finite-difference solver everything is built on
 runs/       the JSON artefact behind every published number
+
+tests/      the test suite (see Testing below)
 ```
 
 Licensed MIT (see `LICENSE`).
@@ -83,6 +85,30 @@ anything. The table below is the full map; every entry was verified against the 
 
 Both figures regenerate byte-identically from the committed artefacts, and the PDF rebuilds from
 `paper/` alone (19 pages, no overfull boxes, no undefined references).
+
+## Testing
+
+```bash
+pip install pytest
+PYTHONPATH=. pytest tests -m "not slow" -q     # ~12s, numpy + scipy only
+PYTHONPATH=. pytest tests tangentsafe/tests -q # ~65s, needs torch for the surrogate tests
+```
+
+Layers, chosen for numerical code rather than for a service architecture. Scientific software
+has an oracle problem -- for most inputs nobody knows the right answer -- so the weight sits on
+relations between runs and on regression against accepted results, not on exact-value unit tests:
+
+| Layer | Where | What it protects |
+|---|---|---|
+| static | `ruff check src theory control tangentsafe tests release` | zero findings, gated in CI |
+| property | `tests/test_fd_solver.py`, `tangentsafe/tests/test_core.py` | solver physics; the null under autograd |
+| metamorphic | `tests/test_metamorphic.py` | relations between runs. MR1 is the paper's thesis: at Pn=0, perturbing Ko or Bi_t leaves the moisture field bit-for-bit unchanged |
+| integration | `tests/test_observation_model.py` | `theory/observe.py`, the hub every script imports |
+| regression | `tests/test_published_numbers.py` | every published number, against `tests/paper_values.py` |
+| contract | `tests/test_artefact_integrity.py` | artefacts exist, carry the keys the paper reads, hold no absolute paths, have one writer each |
+
+`tests/paper_values.py` is every number the paper prints, as data. Change one and a test fails,
+so the paper and the code cannot drift apart silently.
 
 ## Reproducing from scratch
 

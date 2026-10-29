@@ -20,7 +20,9 @@ from kibapap.physics.luikov import LuikovParams
 
 
 class LuikovPlant:
-    def __init__(self, params: LuikovParams = LuikovParams(), n_x: int = 101, dtau: float = 0.01):
+    # LuikovParams is a frozen value object, so sharing one default instance is safe.
+    def __init__(self, params: LuikovParams = LuikovParams(),  # noqa: B008
+                 n_x: int = 101, dtau: float = 0.01):
         self.p = params; self.n_x = n_x; self.dtau = dtau
         h = 1.0 / (n_x - 1)
         sub_T, diag_T, sup_T, gT = _build_d2_operator(n_x, h, params.Bi_t)

@@ -10,7 +10,9 @@ Result (moisture-only): full rank; CR(Ko) 19% -> 20%; corr(Ko,Pn)=+0.35 -> no de
 Run:  .venv/bin/python theory/posnov_coestimation.py
 """
 from __future__ import annotations
+
 import numpy as np
+
 from kibapap.physics import LuikovParams, solve_luikov_fd
 
 K, NOISE, D = 40, 0.01, 1e-3
@@ -43,9 +45,9 @@ def main():
         cr4, r4, _ = analyze(ch, 4)
         cr5, r5, corr = analyze(ch, 5)
         print(f"--- {ch} ---")
-        print("  4-param (Pn known):     rank %d/4  " % r4 +
+        print(f"  4-param (Pn known):     rank {r4}/4  " +
               "  ".join(f"{n}={c:.1f}%" for n, c in zip(NAMES[:4], cr4)))
-        print("  5-param (Pn estimated): rank %d/5  " % r5 +
+        print(f"  5-param (Pn estimated): rank {r5}/5  " +
               "  ".join(f"{n}={c:.1f}%" for n, c in zip(NAMES, cr5)))
         i, j = NAMES.index("Ko"), NAMES.index("Pn")
         print(f"  corr(Ko,Pn)={corr[i,j]:+.3f}   CR(Ko): {cr4[1]:.1f}% -> {cr5[1]:.1f}%\n")

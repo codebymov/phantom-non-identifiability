@@ -13,8 +13,10 @@ Fraternal twin (truth 201x401, model 101x201) avoids the inverse crime.
 Run:  .venv/bin/python theory/posnov_osse.py
 """
 from __future__ import annotations
+
 import numpy as np
 from scipy.optimize import least_squares
+
 from kibapap.physics import LuikovParams, solve_luikov_fd
 
 THETA_TRUE = dict(Lu=0.5, Ko=2.0, Bi_t=1.0, Bi_m=1.0)

@@ -44,7 +44,9 @@ class FDSolution:
         return self.T.shape
 
 
-def _build_d2_operator(n_x: int, h: float, bi_left: float) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def _build_d2_operator(
+    n_x: int, h: float, bi_left: float
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Build sub/diag/sup bands plus a constant BC source vector.
 
     The discretization is centered second-order finite differences with ghost-point

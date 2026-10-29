@@ -12,12 +12,16 @@ Uses the shared observation model (theory/observe.py).
 Run:  PYTHONPATH=. .venv/bin/python theory/make_posnov_figure.py
 """
 from __future__ import annotations
+
 import json
 from pathlib import Path
-import numpy as np
+
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
 from theory.observe import cr
 
 ROOT = Path(__file__).resolve().parents[1]

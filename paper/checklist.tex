@@ -69,8 +69,8 @@
 
 \item {\bf Open access to data and code}
     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
-    \item[] Answer: \answerNo{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: The submission portal for this workshop provides no supplementary-material channel, so code is not attached here. Everything needed to reimplement is stated in the paper: the governing equations (Eq.~\ref{eq:luikov}), the conservation-form observation operator (Eq.~\ref{eq:flux}), the finite-difference discretisation, the per-channel noise model, seeds, grids, sample count $K$, the central-difference step, the surrogate architecture and training budget (App.~\ref{app:surrogate}), and the control objective with all weights, bounds and solver settings (Eq.~\ref{eq:mpc}, App.~\ref{app:control}). No external datasets are used; all data are simulated. An anonymised archive of the scripts, and of the JSON artefact backing every reported number, is prepared and will be released publicly on acceptance.
+    \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+    \item[] Justification: All code and artefacts are public under an MIT licence at \url{https://github.com/codebymov/phantom-non-identifiability}, including the finite-difference solver, every analysis script, the JSON artefact behind every reported number, and this paper's LaTeX source. The repository README maps each table, figure and inline value to the script that produces it and the artefact key that stores it. No external datasets are used; all data are simulated, so the repository is self-contained and runs on a laptop CPU. The paper additionally states everything needed to reimplement from scratch: the governing equations (Eq.~\ref{eq:luikov}), the conservation-form observation operator (Eq.~\ref{eq:flux}), the discretisation, the per-channel noise model, seeds, grids, sample count $K$, the central-difference step, the surrogate architecture and training budget (App.~\ref{app:surrogate}), and the control objective with all weights, bounds and solver settings (Eq.~\ref{eq:mpc}, App.~\ref{app:control}).
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that paper does not include experiments requiring code.
@@ -98,7 +98,7 @@
 \item {\bf Experiment statistical significance}
     \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: Recovery experiments use 20 seeds and report mean $\pm$ standard deviation; the noise level is swept from $0.2\%$ to $5\%$ of range; the goodness-of-fit test reports the fraction of seeds passing at $\alpha{=}0.05$; the joint inverse problem uses multi-start and reports medians; and the loss and architecture study (App.~\ref{app:e1}) reports mean $\pm$ s.d.\ over three seeds. The closed-loop study uses four multistarts per solve, against which no reported cost moves by more than $0.05\%$. Cram\'er-Rao bounds are additionally cross-checked against the Monte Carlo spread.
+    \item[] Justification: Recovery experiments use 20 seeds and report mean $\pm$ standard deviation; the noise level is swept from $0.2\%$ to $5\%$ of range; the goodness-of-fit test reports the fraction of seeds passing at $\alpha{=}0.05$; the joint inverse problems use multi-start and report medians -- the four-parameter study at known $\mathrm{Pn}$ (Table~\ref{tab:joint4}) over $20$ seeds $\times$ $4$ random starts from the box at each of three noise levels, reporting per-parameter medians, the fraction of starts reaching the best basin and the fraction of seeds recovering all four parameters to $10\%$; and the loss and architecture study (App.~\ref{app:e1}) reports mean $\pm$ s.d.\ over three seeds. The closed-loop study uses four multistarts per solve, against which no reported cost moves by more than $0.05\%$. Cram\'er-Rao bounds are additionally cross-checked against the Monte Carlo spread.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not include experiments.
@@ -180,8 +180,8 @@
 
 \item {\bf New assets}
     \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
-    \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
-    \item[] Justification: No new asset is released with this submission, the portal providing no channel for one. The experiment code carries per-script docstrings stating purpose, method, assumptions and how to run each script, with a JSON artefact for every reported number, and is prepared for public release on acceptance.
+    \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+    \item[] Justification: The code and artefacts released at \url{https://github.com/codebymov/phantom-non-identifiability} are documented: an MIT licence, a README giving install steps, runtime tiers and the number-to-script-to-artefact map, and per-script docstrings stating each script's purpose, method, assumptions and invocation. Known limitations of the implementation are recorded there too. No dataset, model checkpoint or trained artefact is released, only source and the JSON results.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not release new assets.

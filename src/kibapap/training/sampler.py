@@ -16,7 +16,6 @@ from collections.abc import Mapping
 
 import torch
 
-
 PARAM_RANGES_DEFAULT: dict[str, tuple[float, float]] = {
     "Bi_t": (0.5, 2.0),
     "Bi_m": (0.5, 2.0),

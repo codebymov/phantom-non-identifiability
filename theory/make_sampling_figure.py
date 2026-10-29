@@ -1,7 +1,10 @@
 """Figure for the Shannon-sampling / Sobolev result (point 3)."""
 from __future__ import annotations
+
 from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +22,8 @@ def main() -> None:
     # Spectra (normalized), with effective bandwidths.
     PM = d["PM"] / d["PM"].max(); PR = d["PR"] / d["PR"].max()
     axA.semilogy(d["fM"], PM + 1e-12, color=CM, lw=1.6, label=r"mean moisture $\bar M$")
-    axA.semilogy(d["fR"], PR + 1e-12, color=CR, lw=1.6, label=r"surface rate $\partial_\tau M|_0$ (Sobolev target)")
+    axA.semilogy(d["fR"], PR + 1e-12, color=CR, lw=1.6,
+                 label=r"surface rate $\partial_\tau M|_0$ (Sobolev target)")
     axA.axvline(float(d["fmaxM"]), color=CM, ls="--", lw=1)
     axA.axvline(float(d["fmaxR"]), color=CR, ls="--", lw=1)
     axA.set_xlim(0, float(d["fmaxR"]) * 2.2); axA.set_ylim(1e-6, 2)

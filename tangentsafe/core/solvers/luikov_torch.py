@@ -71,9 +71,9 @@ def solve_luikov_torch(Lu, Ko, Bi_t, Bi_m, Pn=0.0, n_x: int = 101, n_t: int = 20
     L_M = Lu * L_M                      # moisture diffusivity scaling (as in the reference)
     g_M = Lu * g_M_unit * 0.0           # M_inf = 0
 
-    I = torch.eye(n_x, dtype=DTYPE)
-    A_T = torch.linalg.lu_factor(I - dtau * L_T)
-    A_M = torch.linalg.lu_factor(I - dtau * L_M)
+    eye = torch.eye(n_x, dtype=DTYPE)
+    A_T = torch.linalg.lu_factor(eye - dtau * L_T)
+    A_M = torch.linalg.lu_factor(eye - dtau * L_M)
 
     if u is None:
         u_seq = torch.ones(n_t - 1, dtype=DTYPE)

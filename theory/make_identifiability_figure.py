@@ -1,7 +1,10 @@
 """Figure for the Luikov identifiability result (point 2)."""
 from __future__ import annotations
+
 from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,7 +24,8 @@ def main() -> None:
     axA.bar(x + w/2, d["temp_cols"], w, color=WARM, label="+ temperature channel")
     axA.set_xticks(x); axA.set_xticklabels(names)
     axA.set_ylabel(r"sensitivity  $\|\partial g/\partial\log\theta_j\|$")
-    axA.set_title("Structural identifiability: column norms\n(moisture sensors are blind to Ko, Bi$_t$)", fontsize=10)
+    axA.set_title("Structural identifiability: column norms\n"
+                  "(moisture sensors are blind to Ko, Bi$_t$)", fontsize=10)
     axA.legend(fontsize=8.5, loc="upper center")
     for k in (1, 2):  # Ko, Bi_t
         axA.annotate("0 (unobservable)", (k - w/2, 0), (k - w/2, d["temp_cols"].max()*0.25),

@@ -53,7 +53,7 @@ def dH_du(pn: float):
 def main() -> None:
     print("Sensitivity of the drying observables to the manipulated air temperature u.\n")
     dM0, dR0, dT0 = dH_du(0.0)
-    print(f"Pn = 0 (the reduction):")
+    print("Pn = 0 (the reduction):")
     print(f"  ||d Mbar / du||      = {np.linalg.norm(dM0):.3e}   (exact zero expected)")
     print(f"  ||d rate / du||      = {np.linalg.norm(dR0):.3e}   (exact zero expected)")
     print(f"  ||d Tsurf / du||     = {np.linalg.norm(dT0):.3e}   (nonzero: u does drive temperature)")

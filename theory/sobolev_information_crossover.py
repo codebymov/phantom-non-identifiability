@@ -96,7 +96,9 @@ def main():
         mineig.append(np.nan if r is None else r[0]); alias.append(np.nan if r is None else r[1])
     mineig = np.array(mineig); alias = np.array(alias)
     valid = ~np.isnan(mineig)
-    sign = np.sign(mineig[valid]); cross = dtaus[valid][np.argmax(sign[:-1] != sign[1:])] if (sign[:-1]!=sign[1:]).any() else np.nan
+    sign = np.sign(mineig[valid])
+    flips = sign[:-1] != sign[1:]
+    cross = dtaus[valid][np.argmax(flips)] if flips.any() else np.nan
     OUT.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(OUT, dtaus=dtaus, mineig=mineig, alias=alias,
                         crossover=cross, dtau_star=DTAU_STAR, dtau_paper=DTAU_PAPER)
@@ -110,7 +112,8 @@ def main():
     print(f"\nLoewner crossover (min-eig -> 0): dtau ~ {cross:.3f}  (rate Nyquist {DTAU_STAR})")
     me, al = at(DTAU_PAPER)
     verdict = "INDEFINITE (Sobolev rows inject aliasing variance)" if me < 0 else "still PSD"
-    print(f"at our schedule dtau={DTAU_PAPER:.3f} ({al*100:.0f}% alias): min-eig={me:.3f} -> F_Sob - F_plain {verdict}")
+    print(f"at our schedule dtau={DTAU_PAPER:.3f} ({al*100:.0f}% alias): "
+          f"min-eig={me:.3f} -> F_Sob - F_plain {verdict}")
     print(f"\nsaved {OUT}")
 
 
