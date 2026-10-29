@@ -30,7 +30,17 @@ def _sample_params(
     device: torch.device | str = "cpu",
     generator: torch.Generator | None = None,
 ) -> torch.Tensor:
-    """Sample n parameter rows for (Bi_t, Bi_m, Lu, Ko)."""
+    """Sample parameter rows for (Bi_t, Bi_m, Lu, Ko), uniformly within their ranges.
+
+    Args:
+        n: Number of rows to draw.
+        ranges: Inclusive ``(lo, hi)`` bounds per parameter name. Must contain all four keys.
+        device: Torch device to allocate on.
+        generator: Optional generator, for reproducible draws.
+
+    Returns:
+        Parameter columns of shape ``(n, 4)``, ordered ``(Bi_t, Bi_m, Lu, Ko)``.
+    """
     cols = []
     for key in ("Bi_t", "Bi_m", "Lu", "Ko"):
         lo, hi = ranges[key]
@@ -49,8 +59,18 @@ def sample_collocation(
 ) -> torch.Tensor:
     """Uniform random collocation points in the interior of the spatiotemporal domain.
 
-    For non-parametric: returns (N, 2) with (xi, tau) in [0,1] x [0, tau_final].
-    For parametric: returns (N, 6) with parameter columns appended.
+    Args:
+        n: Number of points to draw.
+        tau_final: Upper end of the time interval; points fall in ``[0, tau_final]``.
+        parametric: Append the four parameter columns, for a parametric surrogate.
+        param_ranges: Parameter bounds when `parametric` is set. Defaults to
+            ``PARAM_RANGES_DEFAULT``.
+        device: Torch device to allocate on.
+        generator: Optional generator, for reproducible draws.
+
+    Returns:
+        Shape ``(n, 2)`` holding ``(xi, tau)``, or ``(n, 6)`` with the parameter columns
+        appended when `parametric` is set.
     """
     xi = torch.rand(n, 1, device=device, generator=generator)
     tau = tau_final * torch.rand(n, 1, device=device, generator=generator)
@@ -70,7 +90,23 @@ def sample_boundary(
     device: torch.device | str = "cpu",
     generator: torch.Generator | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Sample n points each on xi=0 and xi=1 boundaries."""
+    """Sample points on both spatial boundaries at matched times.
+
+    Both returned sets share the same ``tau`` draw, so a boundary residual can pair them.
+
+    Args:
+        n: Number of points per boundary.
+        tau_final: Upper end of the time interval.
+        parametric: Append the four parameter columns.
+        param_ranges: Parameter bounds when `parametric` is set. Defaults to
+            ``PARAM_RANGES_DEFAULT``.
+        device: Torch device to allocate on.
+        generator: Optional generator, for reproducible draws.
+
+    Returns:
+        ``(left, right)`` for ``xi = 0`` and ``xi = 1``, each of shape ``(n, 2)``, or
+        ``(n, 6)`` when `parametric` is set.
+    """
     tau = tau_final * torch.rand(n, 1, device=device, generator=generator)
     xi_left = torch.zeros(n, 1, device=device)
     xi_right = torch.ones(n, 1, device=device)
@@ -90,7 +126,19 @@ def sample_initial(
     device: torch.device | str = "cpu",
     generator: torch.Generator | None = None,
 ) -> torch.Tensor:
-    """Sample n points on tau=0 with xi uniform in [0, 1]."""
+    """Sample points on the initial line ``tau = 0``, with ``xi`` uniform in ``[0, 1]``.
+
+    Args:
+        n: Number of points to draw.
+        parametric: Append the four parameter columns.
+        param_ranges: Parameter bounds when `parametric` is set. Defaults to
+            ``PARAM_RANGES_DEFAULT``.
+        device: Torch device to allocate on.
+        generator: Optional generator, for reproducible draws.
+
+    Returns:
+        Shape ``(n, 2)`` holding ``(xi, 0)``, or ``(n, 6)`` when `parametric` is set.
+    """
     xi = torch.rand(n, 1, device=device, generator=generator)
     tau = torch.zeros(n, 1, device=device)
     base = torch.cat([xi, tau], dim=1)

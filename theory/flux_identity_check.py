@@ -49,7 +49,22 @@ OUT = Path(__file__).resolve().parents[1] / "runs/theory/flux_identity.json"
 
 
 def residual(theta, pn, n_x, n_t, quad="mean"):
-    """Relative L2 mismatch (%) between the closed-form surface flux and d<M>/dtau."""
+    """Relative L2 mismatch, in percent, between the closed-form surface flux and d<M>/dtau.
+
+    Args:
+        theta (sequence of float): The four parameters (Lu, Ko, Bi_t, Bi_m).
+        pn (float): Posnov number.
+        n_x (int): Spatial nodes.
+        n_t (int): Time levels.
+        quad (str): Quadrature for <M>. ``"mean"`` is the plain nodal mean, which is what
+            ``channels()`` observes and therefore what the paper's numbers refer to; anything
+            else uses the trapezoid rule, which is the consistent quadrature for the integral
+            and the one that converges.
+
+    Returns:
+        float: The mismatch in percent, with `EDGE` points dropped at each end where the
+            central difference would be one-sided.
+    """
     s = solve(theta, pn, n_x, n_t)
     p = s.params
     q = -p.Lu * (p.Bi_m * s.M[:, 0] + p.Pn * p.Bi_t * (s.T[:, 0] - 1.0))

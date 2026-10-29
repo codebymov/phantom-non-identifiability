@@ -59,7 +59,14 @@ class FourierFeatures(nn.Module):
         self.out_dim = 2 * num_features
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """x: (..., in_dim) -> (..., 2 * num_features)."""
+        """Project the input onto random Fourier features.
+
+        Args:
+            x: Input of shape ``(..., in_dim)``.
+
+        Returns:
+            Concatenated sine and cosine features of shape ``(..., 2 * num_features)``.
+        """
         proj = 2.0 * math.pi * x @ self.B.T
         return torch.cat([torch.sin(proj), torch.cos(proj)], dim=-1)
 

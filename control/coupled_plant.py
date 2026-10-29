@@ -48,7 +48,16 @@ class CoupledLuikovPlant(LuikovPlant):
         self.Pn = float(getattr(params, "Pn", 0.0))
 
     def _d2T(self, u: float) -> np.ndarray:
-        """Discrete d2T/dxi2 including the Robin drive toward the manipulated air temperature u."""
+        """Discrete second spatial derivative of T, including the Robin drive toward the input.
+
+        Args:
+            u: Normalised hot-air temperature.
+
+        Returns:
+            numpy.ndarray: ``d2T/dxi2`` at the current state, shape ``(n_x,)``. This is the term
+                the reduction drops from the moisture balance, and therefore the one that
+                restores the actuator's authority over drying.
+        """
         T = self.T
         d2 = self.diag_T * T + self.gT_unit * float(u)
         d2[1:] += self.sub_T[1:] * T[:-1]

@@ -55,7 +55,19 @@ def make_truth(grid=(101, 201)):
 
 
 def fit2(pn_model, grid, frac=FRAC, with_T=False, seeds=SEEDS):
-    """Recover (Ko, Bi_t) only; Lu, Bi_m, Pn held at truth."""
+    """Recover the "unobservable" pair, holding the other parameters at truth.
+
+    Args:
+        pn_model: Posnov number of the estimator's forward model. ``0`` is the reduced model,
+            under which the misfit is exactly flat and the estimator cannot move.
+        grid: ``(n_x, n_t)`` for the truth solve.
+        frac: Noise standard deviation as a fraction of each channel's range.
+        with_T: Include the optional mean-temperature channel.
+        seeds: Noise seeds to average over.
+
+    Returns:
+        numpy.ndarray: Shape ``(len(seeds), 2)`` holding the recovered ``(Ko, Bi_t)`` per seed.
+    """
     truth, ts, _, _ = make_truth(grid)
     ys = channels(truth, ts, with_T)
     sig = [frac * (c.max() - c.min()) for c in ys]

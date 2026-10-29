@@ -22,7 +22,8 @@ def test_initial_conditions():
 
 def test_monotonicity_in_xi():
     """Once the boundary layer has spread, T is monotone non-increasing in xi (drier
-    surface is hotter) and M is monotone non-decreasing in xi (drier surface is drier)."""
+    surface is hotter) and M is monotone non-decreasing in xi (drier surface is drier).
+    """
     sol = solve_luikov_fd(LuikovParams(), n_x=51, n_t=101, tau_final=2.0)
     # Skip the initial transient where the wet-bulb cooling can cause non-monotonicity in T
     for n in range(50, 101):
@@ -34,7 +35,8 @@ def test_monotonicity_in_xi():
 
 def test_mass_only_decreases():
     """Average dimensionless moisture can only decrease over time (no remoistening
-    in this BC setup)."""
+    in this BC setup).
+    """
     sol = solve_luikov_fd(LuikovParams(), n_x=51, n_t=101, tau_final=2.0)
     avg_M = sol.M.mean(axis=1)
     diffs = np.diff(avg_M)

@@ -33,7 +33,10 @@ extend-exclude = [".diaglib", "dist", "external", "control/matlab"]
 [tool.ruff.lint]
 # Chosen for a numerical research codebase: correctness and import hygiene are enforced, cosmetic
 # rewrites of working numerical code are not.
-select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "NPY", "PL"]
+# preview enables the pydoclint (DOC) rules, which check that a docstring's Args/Returns/Raises
+# sections actually match the signature and the body.
+preview = true
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "NPY", "PL", "D", "DOC"]
 ignore = [
     # dict(a=1, b=2) builds JSON payloads throughout, where the keyword form reads closer to the
     # artefact schema than a brace literal. Deliberate.
@@ -51,7 +54,30 @@ ignore = [
     # zip(strict=) would be a genuine robustness win (silent truncation is a real bug class) but
     # changes runtime behaviour at ~56 call sites. Tracked as a follow-up, not a pre-deadline edit.
     "B905",
+    # Docstrings are not mandated on every function: the experiment drivers are documented at
+    # module level, where the narrative belongs, and a one-line docstring on each local helper
+    # would add noise rather than information. What IS enforced is that a docstring which does
+    # exist is complete and honest -- D417 (undocumented parameter), DOC201 (missing Returns),
+    # DOC402 (missing Yields) and DOC501 (missing Raises) all fire only when a docstring is
+    # present, which is the property worth gating on.
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    # `preview = true` is on only to reach the DOC rules, and it drags in preview-stage style
+    # rules that would reformat the whole numerical codebase. Each is declined deliberately:
+    "E226", "E231", "E302", "E303", "E305",   # preview whitespace / blank-line rules
+    "PLR6104",   # x = x - 1 -> x -= 1; the explicit form reads better in update formulas
+    "PLC2701",   # the control plants deliberately reuse the solver's banded-operator builders
+    "RUF105",    # prefers `ruff: ignore` over `noqa`; noqa is the portable spelling
+    # RUF069 flags `== 0.0` as unreliable. Here exactness is the claim being tested: the paper
+    # asserts the severed sensitivity column is EXACTLY zero, not small. Approximate comparison
+    # would silently weaken the central result into something the paper does not say.
+    "RUF069",
+    # Formatting preferences that fight the numerical style used here.
+    "D205",   # blank line required between summary and description
+    "D401",   # imperative mood ("Return the bound" vs "Returns the bound")
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 # Experiment drivers define closures inside sweep loops and consume them in the same iteration,

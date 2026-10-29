@@ -39,7 +39,14 @@ class LuikovPlant:
         return self.obs()
 
     def step(self, u: float):
-        """Advance one dtau with hot-air temperature u (normalized, ~[0,1])."""
+        """Advance the plant by one time step under a given hot-air temperature.
+
+        Args:
+            u: Normalised hot-air temperature, roughly in ``[0, 1]``.
+
+        Returns:
+            numpy.ndarray: The observation vector from `obs`, after the step.
+        """
         rhs_M = self.M + self.dtau * self.gM
         M_new = solve_banded((1, 1), self.ab_M, rhs_M)
         dMdt = (M_new - self.M) / self.dtau

@@ -47,7 +47,16 @@ def observe(theta: np.ndarray, channels: str) -> np.ndarray:
 
 
 def sensitivity(theta: np.ndarray, channels: str, d: float = 1e-3) -> np.ndarray:
-    """Scaled Jacobian S_{i j} = d g_i / d log theta_j by central differences."""
+    """Scaled Jacobian ``S_ij = dg_i / dlog theta_j`` by central differences.
+
+    Args:
+        theta: Parameter vector.
+        channels: Which channel set to observe, passed through to `observe`.
+        d: Relative central-difference step in log-parameter space.
+
+    Returns:
+        numpy.ndarray: Shape ``(n_obs, len(theta))``.
+    """
     cols = []
     for j in range(len(theta)):
         tp, tm = theta.copy(), theta.copy()
@@ -121,7 +130,7 @@ def main() -> None:
     # theory/posnov_identifiability_sweep.py, which is the artefact Table 1 is built from, and
     # this script writes a different schema -- running it used to clobber the published table.
     JSON_OUT = OUT.with_name("fisher_nullspace_pn0.json")
-    with open(JSON_OUT, "w") as f:
+    with open(JSON_OUT, "w", encoding="utf-8") as f:
         json.dump({
             "theta0": dict(zip(NAMES, theta0.tolist())), "K": K, "noise": NOISE,
             "moist_only": {"singular_values": rm["sv"].tolist(), "rank": rm["rank"],

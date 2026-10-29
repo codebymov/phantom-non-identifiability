@@ -41,7 +41,17 @@ def fine():
 
 
 def signals(theta, tau_q):
-    """Mean moisture and TRUE surface rate of param theta, interpolated at query times tau_q."""
+    """Mean moisture and the true surface drying rate, interpolated onto query times.
+
+    Args:
+        theta: ``(Lu, Bi_m)``; Ko and Bi_t are held at module constants.
+        tau_q: Query times.
+
+    Returns:
+        tuple: ``(Mbar, rate, Msurf)``, each of shape ``(len(tau_q),)``. Computed on a finer
+            grid than the query schedule so the rate is the true derivative rather than a
+            difference of the sampled trace.
+    """
     s = solve_luikov_fd(LuikovParams(theta[0], KO, BIT, theta[1]), n_x=201, n_t=4001, tau_final=TAUF)
     Mbar = np.interp(tau_q, s.tau, s.M.mean(1))
     rate = np.interp(tau_q, s.tau, np.gradient(s.M[:, 0], s.tau))

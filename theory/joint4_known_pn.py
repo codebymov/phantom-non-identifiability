@@ -52,7 +52,20 @@ LO, HI = np.log(BOX_LO), np.log(BOX_HI)
 
 
 def fit_cell(pn, frac, rng_starts):
-    """Recover all four parameters at a given true/known Pn and noise level."""
+    """Recover all four parameters at one (Pn, noise) cell, with Pn known and fixed.
+
+    Args:
+        pn (float): The true coupling, also given to the estimator's forward model.
+        frac (float): Noise standard deviation as a fraction of each channel's range.
+        rng_starts (numpy.random.Generator): Generator for the random initialisations. Shared
+            across cells so the start sequence is reproducible for the whole sweep.
+
+    Returns:
+        dict: With keys ``median_err_pct`` and ``median_est`` (per parameter, over seeds, of
+            the lowest-cost start), ``frac_basin`` (fraction of all starts landing within
+            `BASIN_TOL` of their seed's best cost) and ``frac_recovered`` (fraction of seeds
+            whose best estimate is within `REC_TOL` of truth on all four parameters at once).
+    """
     truth = solve(THETA_TRUE, pn)
     ts = sample_times(truth, K_DEFAULT)
     ys = channels(truth, ts)

@@ -33,6 +33,15 @@ def _d2_operator(n_x: int, h: float, bi_left: torch.Tensor):
       row n-1  : diag = -2/h^2, sub = 2/h^2   (insulated)
 
     Built so that `bi_left` stays in the autograd graph.
+
+    Args:
+        n_x: Number of spatial nodes, boundaries included.
+        h: Grid spacing.
+        bi_left: Biot number at ``xi = 0``, as a tensor so it remains differentiable.
+
+    Returns:
+        ``(L, g)`` -- the dense ``(n_x, n_x)`` operator and the constant boundary source of
+        shape ``(n_x,)`` with the external drive factored out as 1.
     """
     inv = 1.0 / h ** 2
     L = torch.zeros(n_x, n_x, dtype=DTYPE)
@@ -105,7 +114,23 @@ def channels_torch(T, M, Lu, Bi_t, Bi_m, Pn, K: int = 40, with_T: bool = False, 
 
     Mirrors theory/observe.channels, including the conservation-form surface flux
         q_m(0,tau) = -Lu ( Bi_m M(0,tau) + Pn Bi_t (T(0,tau) - u) )
-    which equals d<M>/dtau exactly. u defaults to 1 (the paper's constant drive).
+    which equals d<M>/dtau exactly.
+
+    Args:
+        T: Temperature field over time, shape ``(n_t, n_x)``.
+        M: Moisture field over time, same shape.
+        Lu: Luikov number.
+        Bi_t: Thermal Biot number.
+        Bi_m: Moisture Biot number.
+        Pn: Posnov number.
+        K: Number of sample times.
+        with_T: Append the optional mean-temperature channel.
+        u: Constant external drive in the surface flux. Defaults to ``None``, meaning 1, the
+            paper's constant drive.
+
+    Returns:
+        torch.Tensor: Concatenated channels of shape ``(n_channels * K,)``, differentiable in
+            every parameter passed as a tensor.
     """
     n_t = T.shape[0]
     idx = torch.linspace(1, n_t - 1, K).round().long()

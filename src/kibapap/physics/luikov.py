@@ -43,7 +43,7 @@ from dataclasses import dataclass
 class LuikovParams:
     """Dimensionless governing parameters for the 1D Luikov system.
 
-    Attributes
+    Attributes:
     ----------
     Lu : float
         Luikov number, ratio of mass to thermal diffusivity (alpha_m / alpha_t).

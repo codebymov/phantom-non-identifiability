@@ -48,16 +48,63 @@ NAMES5 = ["Lu", "Ko", "Bi_t", "Bi_m", "Pn"]
 
 
 def solve(theta, pn, n_x=NX, n_t=NT):
+    """Run the reference finite-difference solver at a parameter point and coupling strength.
+
+    Args:
+        theta (sequence of float): The four parameters (Lu, Ko, Bi_t, Bi_m), in that order.
+        pn (float): Posnov number. ``0`` is the reduced model, in which the moisture balance is
+            autonomous and the phantom null appears.
+        n_x (int): Number of spatial nodes, boundaries included. Defaults to ``NX`` (101).
+        n_t (int): Number of time levels, ``tau = 0`` included. Defaults to ``NT`` (201).
+
+    Returns:
+        FDSolution: Fields ``T`` and ``M`` of shape ``(n_t, n_x)``, with ``xi``, ``tau`` and the
+            ``LuikovParams`` used.
+
+    Note:
+        ``n_x`` and ``n_t`` are bound as defaults at definition time, so reassigning the module
+        constants ``NX`` or ``NT`` after import does **not** change them. Pass them explicitly.
+        An earlier grid-convergence claim in the paper was withdrawn because of this.
+    """
     return solve_luikov_fd(LuikovParams(*theta, Pn=pn), n_x=n_x, n_t=n_t)
 
 
 def sample_times(sol, K=K_DEFAULT):
+    """Pick the K instants at which the instruments are read.
+
+    Indices are spread evenly over the solver's time grid, excluding ``tau = 0`` where the
+    initial condition makes every channel identical by construction.
+
+    Args:
+        sol (FDSolution): A solved trajectory, used only for its time grid.
+        K (int): Number of sample times. Defaults to ``K_DEFAULT`` (40), the paper's schedule.
+
+    Returns:
+        numpy.ndarray: Sample times, shape ``(K,)``, drawn from ``sol.tau``.
+    """
     idx = np.linspace(1, len(sol.tau) - 1, K).astype(int)
     return sol.tau[idx]
 
 
 def channels(sol, t_samp, with_T=False):
-    """[Mbar, q_m] (+ [Tbar]) interpolated onto t_samp. q_m from the closed-form Robin fluxes."""
+    """Evaluate the instrument channels on a trajectory.
+
+    The surface mass flux is taken from the closed-form Robin derivatives rather than by
+    numerically differentiating the field, so no finite differencing enters the observation:
+    ``q_m(0, tau) = -Lu (Bi_m M(0, tau) + Pn Bi_t (T(0, tau) - 1))``.
+
+    Args:
+        sol (FDSolution): A solved trajectory.
+        t_samp (numpy.ndarray): Instants to interpolate onto, as returned by `sample_times`.
+        with_T (bool): Append the optional mean-temperature channel. Defaults to ``False``,
+            which is the moisture-only instrument the paper's central result concerns.
+
+    Returns:
+        list of numpy.ndarray: ``[Mbar, q_m]``, each of shape ``(len(t_samp),)``, plus
+            ``[Tbar]`` when `with_T` is set. ``Mbar`` is a plain nodal mean of ``M``, not a
+            trapezoid quadrature of the integral; that is the operator the paper's numbers refer
+            to.
+    """
     p = sol.params
     Mbar = np.interp(t_samp, sol.tau, sol.M.mean(1))
     dMdxi0 = p.Bi_m * sol.M[:, 0]
@@ -71,22 +118,67 @@ def channels(sol, t_samp, with_T=False):
 
 
 def sigmas(chans, frac=FRAC):
-    """Per-channel noise std = frac * (range of that channel)."""
+    """Noise standard deviation for each channel, as a fraction of that channel's own range.
+
+    One absolute sigma shared across channels would not be a well-posed likelihood here, since a
+    moisture channel and a moisture-rate channel carry different units.
+
+    Args:
+        chans (list of numpy.ndarray): Channels, as returned by `channels`.
+        frac (float): Fraction of each channel's range. Defaults to ``FRAC`` (0.01).
+
+    Returns:
+        list of float: One standard deviation per channel, in the same order.
+
+    Note:
+        ``frac`` is bound as a default at definition time, so reassigning ``FRAC`` after import
+        does not change it. Pass it explicitly.
+    """
     return [float(frac * (c.max() - c.min())) for c in chans]
 
 
 def observe(theta, pn, t_samp=None, with_T=False, K=K_DEFAULT, n_x=NX, n_t=NT):
-    """Stacked observation vector, plus the sample times used."""
+    """Solve, sample and stack every channel into one observation vector.
+
+    Args:
+        theta (sequence of float): The four parameters (Lu, Ko, Bi_t, Bi_m).
+        pn (float): Posnov number.
+        t_samp (numpy.ndarray, optional): Instants to observe at. Defaults to ``None``, which
+            draws them from the solve with `sample_times`.
+        with_T (bool): Include the optional mean-temperature channel. Defaults to ``False``.
+        K (int): Number of sample times, used only when `t_samp` is ``None``.
+        n_x (int): Spatial nodes passed to the solver.
+        n_t (int): Time levels passed to the solver.
+
+    Returns:
+        tuple: ``(h, ts)`` where ``h`` is the concatenated observation vector of shape
+            ``(n_channels * K,)`` and ``ts`` are the sample times actually used.
+    """
     sol = solve(theta, pn, n_x, n_t)
     ts = sample_times(sol, K) if t_samp is None else t_samp
     return np.concatenate(channels(sol, ts, with_T)), ts
 
 
 def sensitivity(theta, pn, with_T=False, K=K_DEFAULT, params=NAMES4, d=D_LOG):
-    """Scaled Jacobian S_ij = d H_i / d log theta_j, central differences through the solver.
+    """Scaled sensitivity ``S_ij = dH_i / dlog theta_j``, by central differences through the solver.
 
-    `params` selects which of (Lu, Ko, Bi_t, Bi_m, Pn) are treated as unknown. Sample times are
-    held fixed at the nominal solve so perturbed runs are compared on the same instants.
+    Sample times are held fixed at the nominal solve, so perturbed runs are compared on the same
+    instants rather than on each run's own grid.
+
+    Args:
+        theta (sequence of float): The four parameters (Lu, Ko, Bi_t, Bi_m).
+        pn (float): Posnov number.
+        with_T (bool): Include the optional mean-temperature channel. Defaults to ``False``.
+        K (int): Number of sample times. Defaults to ``K_DEFAULT``.
+        params (list of str): Which of ``(Lu, Ko, Bi_t, Bi_m, Pn)`` are treated as unknown, and
+            therefore which columns ``S`` has. Defaults to the four non-coupling parameters.
+        d (float): Relative central-difference step in log-parameter space. Defaults to
+            ``D_LOG`` (1e-3).
+
+    Returns:
+        tuple: ``(S, sig)`` where ``S`` has shape ``(n_channels * K, len(params))`` and ``sig``
+            is the per-observation-row noise standard deviation, shape ``(n_channels * K,)``
+            -- already expanded per row, not one entry per channel.
     """
     th = list(theta)
     base = solve(th, pn)
@@ -108,7 +200,27 @@ def sensitivity(theta, pn, with_T=False, K=K_DEFAULT, params=NAMES4, d=D_LOG):
 
 
 def fisher(theta, pn, with_T=False, K=K_DEFAULT, params=NAMES4):
-    """F = S^T Sigma^-1 S with the per-channel noise model, plus rank and marginal CR (%)."""
+    """Fisher information ``F = S^T Sigma^-1 S``, with the structural rank and the marginal bound.
+
+    Rank is read from the noise-scaled column norms rather than from an eigenvalue ratio: a
+    column counts as present when ``||S_:j/sigma|| > 1e-9 max_k ||S_:k/sigma||``. An eigenvalue
+    cut-off would report weak-but-real coupling as a null, which is the binary verdict this work
+    argues against -- practical weakness belongs in the bound, not in the rank.
+
+    Args:
+        theta (sequence of float): The four parameters (Lu, Ko, Bi_t, Bi_m).
+        pn (float): Posnov number.
+        with_T (bool): Include the optional mean-temperature channel. Defaults to ``False``.
+        K (int): Number of sample times. Defaults to ``K_DEFAULT``.
+        params (list of str): Parameters treated as unknown. Defaults to the four
+            non-coupling parameters.
+
+    Returns:
+        dict: With keys ``S`` (scaled sensitivity), ``sigma`` (per-row noise std), ``F`` (Fisher
+            matrix), ``eig`` (eigenvalues, descending), ``rank`` (structural rank), ``crb``
+            (marginal Cramer-Rao relative standard deviation in percent, ``inf`` for every entry
+            when the rank is deficient), ``col_norm`` (scaled column norms) and ``params``.
+    """
     S, sig = sensitivity(theta, pn, with_T, K, params)
     Sw = S / sig[:, None]
     F = Sw.T @ Sw
@@ -135,5 +247,25 @@ def fisher(theta, pn, with_T=False, K=K_DEFAULT, params=NAMES4):
 
 
 def cr(theta, pn, which="Ko", with_T=False, K=K_DEFAULT, params=NAMES4):
+    """Marginal Cramer-Rao relative standard deviation for one parameter, in percent.
+
+    Args:
+        theta (sequence of float): The four parameters (Lu, Ko, Bi_t, Bi_m).
+        pn (float): Posnov number.
+        which (str): Parameter to report. Must appear in `params`. Defaults to ``"Ko"``.
+        with_T (bool): Include the optional mean-temperature channel. Defaults to ``False``.
+        K (int): Number of sample times. Defaults to ``K_DEFAULT``.
+        params (list of str): Parameters treated as unknown, which sets what the bound is
+            marginal over. Defaults to the four non-coupling parameters.
+
+    Returns:
+        float: The bound in percent, or ``inf`` when the parameter is structurally
+            unidentifiable at this coupling.
+
+    Raises:
+        ValueError: If `which` is not in `params`.
+    """
     r = fisher(theta, pn, with_T, K, params)
+    if which not in r["params"]:
+        raise ValueError(f"{which!r} is not among the estimated parameters {r['params']}")
     return float(r["crb"][r["params"].index(which)])

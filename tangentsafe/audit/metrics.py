@@ -12,17 +12,32 @@ import numpy as np
 
 
 def fisher_from_jacobian(J: np.ndarray, sigma: np.ndarray | float) -> np.ndarray:
-    """F = J^T Sigma^-1 J with a per-observable noise vector (or scalar)."""
+    """Fisher information from a Jacobian and a noise model.
+
+    Args:
+        J: Jacobian of shape ``(n_obs, n_params)``.
+        sigma: Per-observable noise standard deviation, or one scalar for all.
+
+    Returns:
+        ``F = J^T Sigma^-1 J``, shape ``(n_params, n_params)``.
+    """
     w = np.asarray(sigma, dtype=float)
     Jw = J / (w[:, None] if w.ndim else w)
     return Jw.T @ Jw
 
 
 def subspace_angle(A: np.ndarray, B: np.ndarray, k: int = 2) -> float:
-    """Largest principal angle (radians) between the top-k right singular subspaces of A and B.
+    """Largest principal angle between the top-k right singular subspaces of two matrices.
 
-    Returns pi/2 when one subspace is degenerate (e.g. a structurally zero Jacobian), which is the
-    correct answer: nothing about the reference orientation is recovered.
+    Args:
+        A: First matrix.
+        B: Second matrix.
+        k: Number of leading right singular vectors to compare.
+
+    Returns:
+        float: The angle in radians. ``pi/2`` when either subspace is degenerate, for instance
+            against a structurally zero Jacobian -- which is the correct answer, since nothing
+            about the reference orientation is recovered.
     """
     def top_right(M):
         _U, s, Vt = np.linalg.svd(M, full_matrices=False)
@@ -54,7 +69,22 @@ def _cr(J, sigma, names):
 
 def tangent_metrics(J_sur: np.ndarray, J_ref: np.ndarray, sigma, names, k: int = 2,
                     fwd_relL2: float | None = None) -> dict:
-    """Full metric block for one surrogate/reduction against a reference tangent map."""
+    """Compare one surrogate or reduction against a reference tangent map.
+
+    Args:
+        J_sur: Surrogate or reduced-model Jacobian.
+        J_ref: Reference Jacobian.
+        sigma: Noise model passed to `fisher_from_jacobian`.
+        names: Parameter names, for labelling the per-parameter outputs.
+        k: Subspace dimension for the principal-angle comparison.
+        fwd_relL2: Forward relative L2 error, recorded alongside so forward accuracy and
+            tangent accuracy can be read together. Defaults to ``None``.
+
+    Returns:
+        dict: Relative Jacobian error, singular-value error, subspace angle in radians and
+            degrees, the rank of each Jacobian, the Cramer-Rao bound from each, and the
+            sensitivity ordering each implies -- the block the paper reports per coupling.
+    """
     nref = np.linalg.norm(J_ref)
     E_J = float(np.linalg.norm(J_sur - J_ref) / nref) if nref > 0 else float("nan")
     s_sur = np.linalg.svd(J_sur, compute_uv=False)

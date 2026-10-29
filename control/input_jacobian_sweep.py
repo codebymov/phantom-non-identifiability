@@ -32,7 +32,16 @@ OUT = Path(__file__).resolve().parents[1] / "runs/control/input_jacobian.json"
 
 
 def rollout(pn: float, u: float):
-    """Constant-u open-loop rollout; returns Mbar(tau), drying rate, Tsurf(tau)."""
+    """Roll the plant forward open-loop at a constant control input.
+
+    Args:
+        pn: Posnov number of the plant.
+        u: Constant normalised hot-air temperature.
+
+    Returns:
+        tuple: ``(Mbar, rate, Tsurf)``, each of shape ``(NSTEP,)`` -- mean moisture, its time
+            derivative by central differences, and the surface temperature.
+    """
     pl = make_plant(pn, dtau=DTAU); pl.reset()
     Mbar, Tsurf = [], []
     for _ in range(NSTEP):
@@ -44,7 +53,16 @@ def rollout(pn: float, u: float):
 
 
 def dH_du(pn: float):
-    """Central-difference sensitivity of each observable trajectory to the constant control u."""
+    """Sensitivity of each observable trajectory to the constant control, by central differences.
+
+    Args:
+        pn: Posnov number of the plant.
+
+    Returns:
+        tuple: ``(dMbar/du, drate/du, dTsurf/du)``, each a trajectory of shape ``(NSTEP,)``.
+            At ``pn = 0`` the first two are exactly zero: the reduction severs the only path
+            from the actuator to the moisture field.
+    """
     Mp, Rp, Tp = rollout(pn, U0 + DU)
     Mm, Rm, Tm = rollout(pn, U0 - DU)
     return ((Mp - Mm) / (2 * DU), (Rp - Rm) / (2 * DU), (Tp - Tm) / (2 * DU))

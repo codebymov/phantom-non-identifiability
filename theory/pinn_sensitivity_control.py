@@ -74,7 +74,20 @@ def pinn_functionals(model, theta, xi, tau, grad_param=None):
 
 
 def pinn_dlog(model, theta, xi, tau, name):
-    """d<T>/dlog p and d<M>/dlog p by autograd, as vectors over tau."""
+    """Sensitivities of both mean fields to one parameter, by autograd, as vectors over time.
+
+    Args:
+        model: The frozen parametric surrogate.
+        theta: Parameter values by name.
+        xi: Spatial query points.
+        tau: Time query points.
+        name: Parameter to differentiate with respect to.
+
+    Returns:
+        tuple: ``(d<T>/dlog p, d<M>/dlog p)``, each of shape ``(len(tau),)``. Per-time vectors
+            rather than a summed scalar, so sign cancellation across time cannot hide a
+            sensitivity -- and so the result is comparable with the solver reference.
+    """
     Tb, Mb, scal = pinn_functionals(model, theta, xi, tau, grad_param=name)
     p = scal[name]
     # per-sample derivative: use jacobian via repeated grad on each entry (cheap: len(tau) small)

@@ -41,7 +41,19 @@ OUT = Path(__file__).resolve().parents[1] / "runs/theory/weak_coupling.json"
 
 
 def crossover(theta, which="Ko", pn_max=2.5, n=40):
-    """First Pn on a log grid where CR drops below 100%, refined by log-log interpolation."""
+    """The crossover coupling at which the bound first becomes usable.
+
+    Args:
+        theta: The four parameters (Lu, Ko, Bi_t, Bi_m).
+        which: Parameter whose bound defines the crossover. Defaults to ``"Ko"``.
+        pn_max: Upper end of the search.
+        n: Number of log-spaced probes.
+
+    Returns:
+        float: The first Posnov number at which the Cramer-Rao bound falls below 100%,
+            refined by log-log interpolation between the bracketing probes, or ``nan`` if the
+            bound never drops below 100% up to `pn_max`.
+    """
     prev_p = prev_c = None
     for p in np.geomspace(1e-4, pn_max, n):
         c = cr(theta, p, which)

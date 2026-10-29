@@ -1,4 +1,4 @@
-"""E1 -- can any loss or architecture restore a severed pathway? (Proposition 1)
+"""E1: can any loss or architecture restore a severed pathway? (Proposition 1).
 
 The reviewer objection this forecloses: "surely gradient-enhanced penalties, better loss weighting,
 or an architecture that feeds the temperature field to the moisture head would fix this."
@@ -160,6 +160,15 @@ def sensitivity(net, name="Ko"):
 
     Matches the predecessor paper's convention. An earlier version differentiated a summed scalar,
     which permits sign cancellation across time and is not comparable to the solver reference.
+
+    Args:
+        net: The trained network to probe.
+        name: Parameter to differentiate with respect to. Defaults to ``"Ko"``.
+
+    Returns:
+        tuple: ``(||d<M>/dlog p||, ||d<T>/dlog p||)``. The first is the severed pathway, whose
+            true value under the reduced operator is exactly zero, so what it measures on a
+            finitely-trained network is a leakage floor rather than a coupling.
     """
     theta = {k: torch.tensor(NOMINAL[k], requires_grad=(k == name)) for k in ORDER}
     Mbar, Tbar = mean_fields(net, theta)

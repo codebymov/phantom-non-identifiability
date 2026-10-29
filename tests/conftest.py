@@ -29,21 +29,43 @@ def root() -> Path:
 
 @pytest.fixture(scope="session")
 def fisher_moisture() -> dict:
-    """Moisture-only Fisher results at each Posnov number Table 1 reports."""
+    """Moisture-only Fisher results at each Posnov number Table 1 reports.
+
+    Session-scoped: a Fisher evaluation costs eight solver calls, so these are computed once
+    and shared across every test that needs them.
+
+    Returns:
+        dict: Posnov number -> the `theory.observe.fisher` result dict at the nominal theta.
+    """
     from tests.paper_values import NOMINAL_THETA
     return {pn: fisher(NOMINAL_THETA, pn) for pn in PAPER_PN}
 
 
 @pytest.fixture(scope="session")
 def fisher_with_t() -> dict:
-    """Moisture-plus-<T> Fisher results, for the Table 1 gain row and the E-optimal step."""
+    """Moisture-plus-<T> Fisher results, for the Table 1 gain row and the E-optimal step.
+
+    Returns:
+        dict: Posnov number -> the `theory.observe.fisher` result dict with the optional
+            mean-temperature channel included.
+    """
     from tests.paper_values import NOMINAL_THETA
     return {pn: fisher(NOMINAL_THETA, pn, with_T=True) for pn in PAPER_PN}
 
 
 @pytest.fixture(scope="session")
 def artefacts(root: Path) -> dict:
-    """Every committed JSON artefact, keyed by its path relative to runs/."""
+    """Every committed JSON artefact, loaded once and keyed by its path relative to ``runs/``.
+
+    Args:
+        root: Repository root, from the `root` fixture.
+
+    Returns:
+        dict: Path relative to ``runs/`` -> parsed JSON, or ``None`` for a file that failed to
+            parse. Invalid JSON is recorded rather than raised so that
+            `test_every_artefact_is_valid_json` can report all offenders at once instead of
+            dying on the first.
+    """
     out = {}
     for p in sorted((root / "runs").rglob("*.json")):
         try:
@@ -54,10 +76,19 @@ def artefacts(root: Path) -> dict:
 
 
 def rounds_to(value: float, printed: float) -> bool:
-    """True if `value` rounds to `printed` at the precision `printed` is written to.
+    """Whether `value` rounds to `printed` at the precision `printed` is written to.
 
     The paper prints "66%", so 66.26 passes and 66.9 does not. Tolerances in the regression
     tests are the paper's printed precision, not the computation's precision.
+
+    Args:
+        value: The computed quantity.
+        printed: The quantity as the paper prints it. An ``int`` means zero decimals, so
+            ``176`` accepts anything rounding to 176; a ``float`` carries its own precision,
+            so ``1.2`` accepts anything rounding to 1.2.
+
+    Returns:
+        bool: ``True`` when the two agree at that precision.
     """
     if isinstance(printed, int):
         decimals = 0

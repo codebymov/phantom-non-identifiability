@@ -72,7 +72,21 @@ def _compute_loss(
     defaults: LuikovParams,
     cfg: TrainingConfig,
 ) -> tuple[torch.Tensor, dict[str, float]]:
-    """Forward pass + loss assembly. Returns (total_loss, per_term_dict)."""
+    """Assemble the PDE, boundary and initial-condition losses into one objective.
+
+    Args:
+        model: The network under training.
+        x_pde: Interior collocation points.
+        x_bc_left: Boundary points at ``xi = 0``.
+        x_bc_right: Boundary points at ``xi = 1``.
+        x_ic: Points on the initial line ``tau = 0``.
+        defaults: Parameters used for any column the input does not carry.
+        cfg: Training configuration, supplying the per-term weights.
+
+    Returns:
+        ``(total, terms)`` where ``total`` is the weighted scalar objective carrying gradients,
+        and ``terms`` maps each term name to its unweighted value as a float, for logging.
+    """
     # PDE residuals
     res_T, res_M = pde_residuals(model, x_pde, defaults)
     loss_pde = (res_T.pow(2).mean() + res_M.pow(2).mean()) * 0.5
@@ -104,13 +118,22 @@ def train_forward_pinn(
     cfg: TrainingConfig | None = None,
     log_dir: Path | str | None = None,
 ) -> dict[str, list]:
-    """Train a forward PINN against PDE+BC+IC residuals.
+    """Train a forward PINN against PDE, boundary and initial-condition residuals.
 
-    No FD data is used here — this is the pure forward problem. Phase-3 inverse
-    training is a separate function that adds a data loss term.
+    No finite-difference data is used: this is the pure forward problem. Inverse training,
+    which adds a data term, is a separate function.
 
-    Returns a history dict with keys 'iter', 'total', 'pde', 'bc', 'ic', and optionally
-    'gpinn'. The model is trained in place.
+    Args:
+        model: The network to train. Modified in place.
+        defaults: Parameters used for any column the collocation inputs do not carry.
+        cfg: Training configuration. Defaults to ``TrainingConfig()``.
+        log_dir: Directory to write the loss history to. Defaults to ``None``, which writes
+            nothing.
+
+    Returns:
+        Loss history with keys ``iter``, ``total``, ``pde``, ``bc``, ``ic``, and ``gpinn``
+        when the gradient-enhanced term is enabled. The model is trained in place, so the
+        return value is diagnostics only.
     """
     cfg = cfg or TrainingConfig()
     torch.manual_seed(cfg.seed)

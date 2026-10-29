@@ -26,7 +26,17 @@ from kibapap.physics.luikov import LuikovParams
 
 
 def _grad(y: torch.Tensor, x: torch.Tensor, create_graph: bool = True) -> torch.Tensor:
-    """Compute dy/dx for a scalar-summed y. Returns same shape as x."""
+    """Gradient of a scalar-summed tensor with respect to an input.
+
+    Args:
+        y: Output tensor; summed before differentiating.
+        x: Input to differentiate with respect to. Must require grad.
+        create_graph: Keep the graph so the result can itself be differentiated, which the
+            gradient-enhanced term needs.
+
+    Returns:
+        ``dy/dx``, the same shape as `x`.
+    """
     return torch.autograd.grad(
         outputs=y.sum(),
         inputs=x,
@@ -38,11 +48,16 @@ def _grad(y: torch.Tensor, x: torch.Tensor, create_graph: bool = True) -> torch.
 def _extract_params(
     x: torch.Tensor, defaults: LuikovParams
 ) -> tuple[torch.Tensor | float, torch.Tensor | float, torch.Tensor | float, torch.Tensor | float]:
-    """Pull (Bi_t, Bi_m, Lu, Ko) from the input columns if parametric, else use defaults.
+    """Pull (Bi_t, Bi_m, Lu, Ko) from the input columns when parametric, else use the defaults.
 
-    For non-parametric Phase-1 use, defaults are baseline scalars. For parametric Phase-1b,
-    the network input contains the four parameters as additional columns and we extract
-    them per-sample.
+    Args:
+        x: Network input. Two columns means non-parametric; six means the four parameters are
+            carried per sample in columns 2 to 5.
+        defaults: Values to fall back on when `x` carries no parameter columns.
+
+    Returns:
+        ``(Bi_t, Bi_m, Lu, Ko)``, each either a per-sample column tensor or a scalar float,
+        depending on whether `x` was parametric.
     """
     if x.shape[-1] >= 6:
         # parametric ordering: (xi, tau, Bi_t, Bi_m, Lu, Ko)
@@ -63,7 +78,17 @@ def pde_residuals(
     x: torch.Tensor,
     defaults: LuikovParams,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Compute (residual_T, residual_M) at collocation points x.
+    """Compute the PDE residuals of both fields at collocation points.
+
+    Args:
+        model: The network being trained.
+        x: Collocation points. Reused directly if it already requires grad, so that a
+            gradient-enhanced term differentiating the residual stays connected to the same
+            tensor; otherwise a leaf copy requiring grad is made.
+        defaults: Parameters for any column `x` does not carry.
+
+    Returns:
+        ``(res_T, res_M)``, each of shape ``(N, 1)``, both driven to zero by training.
 
     Each residual has shape (N, 1) and should be driven to zero by training.
 
@@ -100,7 +125,7 @@ def boundary_residuals(
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Compute the four BC residuals.
 
-    Returns
+    Returns:
     -------
     res_T_left, res_M_left : (N, 1)
         Robin residuals at xi=0:
@@ -129,10 +154,15 @@ def boundary_residuals(
 
 
 def initial_residuals(model: nn.Module, x_ic: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-    """Initial condition residuals: T(xi, 0) = 0, M(xi, 0) = 1.
+    """Initial-condition residuals for ``T(xi, 0) = 0`` and ``M(xi, 0) = 1``.
 
-    x_ic should have tau = 0 for all rows. This function does not enforce that,
-    so the caller is responsible for sampling correctly.
+    Args:
+        model: The network being trained.
+        x_ic: Points on the initial line. Every row should have ``tau = 0``; this is not
+            enforced here, so correct sampling is the caller's responsibility.
+
+    Returns:
+        ``(res_T, res_M)``, each of shape ``(N, 1)``.
     """
     T, M = model(x_ic)
     return T - 0.0, M - 1.0
@@ -166,7 +196,7 @@ def measurement_consistency_residuals(
         dMdt_surface: (K, 1) measured surface drying rate at t_meas.
         xi_quad     : (Q, 1) quadrature nodes in xi for the mean (e.g. linspace(0,1,Q)).
 
-    Returns
+    Returns:
     -------
     res_integral : (K, 1)  predicted mean moisture minus measured.
     res_derivative : (K, 1)  predicted surface dM/dt minus measured.
@@ -199,14 +229,14 @@ def gpinn_residual_gradient(
     x: torch.Tensor,
     defaults: LuikovParams,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """gPINN extension (Yu et al. 2022).
+    """GPINN extension (Yu et al. 2022).
 
     If the PDE residual r(x) is exactly zero on the manifold, then nabla r(x) is also
     zero. Penalizing nabla r in the loss enforces a stronger consistency on a finite
     discretization. This is a phase-2 deliverable; included here so the architecture
     is in place from the start.
 
-    Returns
+    Returns:
     -------
     grad_res_T, grad_res_M : (N, 1)
         L2 norms of the spatial gradient of the PDE residuals at each collocation point.

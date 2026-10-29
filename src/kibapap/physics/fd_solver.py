@@ -71,7 +71,7 @@ def _build_d2_operator(
     bi_left : float
         Biot number at xi=0.
 
-    Returns
+    Returns:
     -------
     sub, diag, sup : np.ndarray of shape (n_x,)
         Tridiagonal bands of the second-derivative operator. sub[0] and sup[-1] are
@@ -104,12 +104,17 @@ def _build_d2_operator(
 
 
 def _to_banded(sub: np.ndarray, diag: np.ndarray, sup: np.ndarray) -> np.ndarray:
-    """Pack tridiagonal bands into the (3, n) layout that solve_banded expects.
+    """Pack tridiagonal bands into the ``(3, n)`` layout ``scipy.linalg.solve_banded`` expects.
 
-    For solve_banded((1, 1), ab, b):
-        ab[0, 1:]   = super-diagonal entries (ab[0, 0] unused)
-        ab[1, :]    = main diagonal
-        ab[2, :-1]  = sub-diagonal entries (ab[2, -1] unused)
+    Args:
+        sub: Sub-diagonal entries; ``sub[0]`` is unused.
+        diag: Main diagonal.
+        sup: Super-diagonal entries; ``sup[-1]`` is unused.
+
+    Returns:
+        Banded matrix of shape ``(3, n)`` for ``solve_banded((1, 1), ab, b)``, where row 0 from
+        index 1 holds the super-diagonal, row 1 the main diagonal, and row 2 up to index -1 the
+        sub-diagonal.
     """
     n = diag.shape[0]
     ab = np.zeros((3, n))
@@ -139,7 +144,7 @@ def solve_luikov_fd(
         Final dimensionless time. tau_final ~ 2 is enough for full equilibration at
         the baseline parameter set; raise if Lu is small.
 
-    Returns
+    Returns:
     -------
     FDSolution dataclass with xi, tau, T (n_t, n_x), M (n_t, n_x), params.
     """

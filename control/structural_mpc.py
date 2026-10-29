@@ -63,7 +63,21 @@ def _weights():
 
 
 def rollout_cost(pn_model, T0, M0, u_prev, plan, n_left):
-    """Predicted cost-to-go under a model with coupling pn_model, from the given full state."""
+    """Predicted cost-to-go under a prediction model with a given coupling.
+
+    Args:
+        pn_model: Posnov number of the *prediction* model. This is the independent variable of
+            the whole study: the reduced arm uses 0, the matched arm the truth.
+        T0: Current temperature field.
+        M0: Current moisture field.
+        u_prev: Previously applied input, for the move-suppression term.
+        plan: Piecewise-constant control plan over the remaining horizon.
+        n_left: Steps remaining to the end of the horizon.
+
+    Returns:
+        float: The predicted cost, summing temperature tracking, terminal moisture error,
+            move suppression and the scorch penalty.
+    """
     pl = make_plant(pn_model, dtau=DTAU)
     pl.T, pl.M = T0.copy(), M0.copy()
     edges = np.linspace(0, n_left, N_BLOCK + 1).astype(int)
@@ -83,7 +97,22 @@ def rollout_cost(pn_model, T0, M0, u_prev, plan, n_left):
 
 
 def solve_move(kind, pn_true, T0, M0, u_prev, n_left):
-    """One receding-horizon solve. `kind` selects the prediction model's structure."""
+    """Solve one receding-horizon step and return the move to apply.
+
+    Args:
+        kind: Prediction-model structure -- ``"reduced"`` (Pn = 0), ``"matched"``
+            (Pn = truth), or anything else for the model-uncertain spike-and-slab mixture.
+        pn_true: True coupling of the plant, used by the matched arm and the mixture.
+        T0: Current temperature field.
+        M0: Current moisture field.
+        u_prev: Previously applied input.
+        n_left: Steps remaining to the end of the horizon.
+
+    Returns:
+        float: The first move of the best plan found, clipped to ``[0, U_MAX]``. Every arm uses
+            the same multistart budget, so a correct prediction model cannot lose to a hedged
+            one merely through a local basin.
+    """
     if kind == "reduced":
         models, wts = [0.0], [1.0]
     elif kind == "matched":
@@ -112,7 +141,16 @@ def solve_move(kind, pn_true, T0, M0, u_prev, n_left):
 
 
 def run(kind, pn_true):
-    """Closed loop: NMPC of the given structure driving the coupled truth plant."""
+    """Run the closed loop: NMPC of a given structure driving the coupled truth plant.
+
+    Args:
+        kind: Prediction-model structure, as in `solve_move`.
+        pn_true: True coupling of the plant.
+
+    Returns:
+        dict: Trajectories ``u``, ``Mbar``, ``Tsurf`` and ``tau``, plus a ``metrics`` block
+            holding the realised cost and its components.
+    """
     truth = make_plant(pn_true, dtau=DTAU); truth.reset()
     u_prev, t0 = 0.5, time.time()
     log = {"u": [], "Mbar": [], "Tsurf": [], "tau": []}

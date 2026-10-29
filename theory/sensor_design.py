@@ -69,7 +69,14 @@ def sensitivity_blocks(theta=THETA0, d=1e-3):
     """Scaled sensitivity S_ij = d f_i / d log theta_j per candidate, by central differences.
 
     Copy of identifiability_fim.py's method, generalized to all candidates at once: 8 FD solves
-    (4 params x +/-) feed every candidate. Returns {name: (K, 4) block}.
+    (4 params x +/-) feed every candidate.
+
+    Args:
+        theta: Parameter point to linearise about. Defaults to ``THETA0``.
+        d: Relative central-difference step in log-parameter space.
+
+    Returns:
+        dict: Candidate name -> its ``(K, 4)`` sensitivity block.
     """
     per_param = []
     for j in range(len(theta)):
@@ -85,7 +92,16 @@ def sensitivity_blocks(theta=THETA0, d=1e-3):
 
 
 def fisher_metrics(S):
-    """E-optimality lambda_min, A-optimality trace(F^-1), rank, and CR relative std."""
+    """Design criteria for one candidate sensor set.
+
+    Args:
+        S: Stacked sensitivity block for the chosen set.
+
+    Returns:
+        dict: ``lam_min`` (E-optimality), ``a_opt`` (A-optimality, ``trace(F^-1)``), ``rank``,
+            the eigenvalues in descending order, and the per-parameter Cramer-Rao relative
+            standard deviation.
+    """
     F = S.T @ S / NOISE ** 2
     w = np.linalg.eigvalsh(F)                       # ascending, real (F symmetric PSD)
     w = np.clip(w, 0, None)

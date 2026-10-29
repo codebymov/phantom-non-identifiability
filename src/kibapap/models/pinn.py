@@ -99,7 +99,16 @@ class SegregatedPINN(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """x: (..., in_dim) -> (T: (..., 1), M: (..., 1))."""
+        """Evaluate both field heads.
+
+        Args:
+            x: Input of shape ``(..., in_dim)``, with ``xi`` in column 0 and ``tau`` in column 1.
+
+        Returns:
+            ``(T, M)``, each of shape ``(..., 1)``. When ``hard_ic`` is set the outputs are
+            rescaled so ``T(xi, 0) = 0`` and ``M(xi, 0) = 1`` hold by construction rather than
+            by penalty.
+        """
         T_raw = self.T_net(x)
         M_raw = self.M_net(x)
         if self.hard_ic:

@@ -41,12 +41,30 @@ T_AMB0 = 20.0
 
 
 def m_vap(Tg, X):
-    """Nonlinear evaporation rate: moisture x superheat driving force (kg/s)."""
+    """Nonlinear evaporation rate: moisture times superheat driving force.
+
+    Args:
+        Tg: Gas temperature.
+        X: Moisture content.
+
+    Returns:
+        Evaporation rate in kg/s, clamped at zero in both factors so neither negative
+        moisture nor subcooled gas drives evaporation backwards.
+    """
     return K_EVAP * np.maximum(X, 0.0) * np.maximum(Tg - T_AMB0, 0.0)
 
 
 def plant_step(state, u, d_moist=0.0):
-    """One RK4 step of the drying plant. state=(T_G, X); u=Q_heat; d_moist adds incoming moisture."""
+    """Advance the drying plant by one step with fourth-order Runge-Kutta.
+
+    Args:
+        state: ``(T_G, X)`` -- gas temperature and moisture content.
+        u: Heat input ``Q_heat``.
+        d_moist: Incoming moisture disturbance added to the moisture balance.
+
+    Returns:
+        numpy.ndarray: The state after one step of ``DT``, same shape as `state`.
+    """
     def f(s):
         Tg, X = s
         mv = m_vap(Tg, X)
@@ -98,8 +116,25 @@ def train_surrogate():
 
 # --------------------------------------------------------------------------- surrogate NMPC ------
 def nmpc_move(m, state, u_prev, w_seq, Np, Nc, q=1.0, r=2e-6, iters=60):
-    """Gradient-based receding-horizon step through the differentiable surrogate.
-    Optimizes an Nc-move control plan (held then frozen over Np), returns the first move."""
+    """Take one receding-horizon step by gradient descent through the differentiable surrogate.
+
+    Optimises an `Nc`-move plan, held and then frozen over the `Np`-step horizon, and applies
+    only the first move.
+
+    Args:
+        m: The differentiable surrogate used as the prediction model.
+        state: Current plant state.
+        u_prev: Previously applied input, for the move-suppression term.
+        w_seq: Setpoint sequence over the horizon.
+        Np: Prediction horizon length.
+        Nc: Number of free control moves.
+        q: Tracking weight.
+        r: Move-suppression weight.
+        iters: Gradient steps per solve.
+
+    Returns:
+        float: The first move of the optimised plan, clipped to ``[0, Q_MAX]``.
+    """
     s0 = torch.tensor(state, dtype=torch.float32)
     # decision variables in [0,1]; map to [0,Qmax] via sigmoid (magnitude constraint by construction)
     theta = torch.zeros(Nc, requires_grad=True)
@@ -134,7 +169,17 @@ def pid(e, integ, e_prev, Kp=420.0, Ki=9.0, Kd=70.0):
 
 
 def run(controller, m=None, T=120):
-    """Closed-loop simulation. Setpoint step at t=0->40 min region; moisture disturbance mid-run."""
+    """Run a closed-loop simulation with a setpoint step and a mid-run moisture disturbance.
+
+    Args:
+        controller: ``"pid"`` or ``"nmpc"``, selecting the control law.
+        m: Surrogate for the NMPC controller. Unused by the PID arm.
+        T: Number of closed-loop steps.
+
+    Returns:
+        tuple: ``(log, tgrid)`` where ``log`` maps each of ``T``, ``X``, ``u`` and ``w`` to an
+            array of length `T`, and ``tgrid`` is the time index.
+    """
     tgrid = np.arange(T)
     w = np.where(tgrid < 30, 45.0, 75.0)   # aggressive Sollwert 75 C ABOVE the 72 C safety limit
     s = np.array([T_AMB0 + 5.0, 0.45]); u_prev = 0.0; integ = 0.0; e_prev = 0.0
