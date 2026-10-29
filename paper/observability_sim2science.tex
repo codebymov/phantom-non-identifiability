@@ -24,6 +24,14 @@
 \setlength{\intextsep}{10pt plus 2pt minus 2pt}
 \setlength{\abovecaptionskip}{6pt}
 \setlength{\belowcaptionskip}{2pt}
+% LaTeX's defaults reserve a fifth of any float-bearing page for text and cap how much of it a
+% float may occupy, which left 14 blank lines and two underfull-vbox warnings on the page holding
+% Fig. 1 and Table 1. Relaxing the fractions lets text and floats share those pages properly.
+% Font size, leading and margins remain the neurips_2026 defaults.
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.85}
 
 \title{Phantom Non-Identifiability:\\
 When Simplifying a Coupled Simulator\\
@@ -49,7 +57,7 @@ dropping the thermogradient (Posnov) coupling makes a Fisher analysis declare th
 blind to the temperature-side parameters and an E-optimal step prescribe a temperature channel.
 Restoring the term collapses the null: sensitivities grow as $O(\mathrm{Pn})$ and the Cram\'er-Rao
 bound as $O(\mathrm{Pn}^{-1})$, which we derive and use to \emph{predict} the crossover from one probe
-solve. Critically the failure is silent -- over a wide window the calibrated reduced model passes a
+solve. Critically, the failure is silent -- over a wide window the calibrated reduced model passes a
 $\chi^2$ goodness-of-fit test while still reporting rank $2$ and ``buy a temperature sensor'' -- and it
 is not confined to inference: the same severed path zeros the input-to-observable Jacobian, so a
 controller built on the reduced simulator pays up to $12.5\times$ the matched controller's closed-loop
@@ -67,8 +75,8 @@ to inputs $u$. \emph{Severing the only path from a parameter to an observable is
 wrong-signed or cancelling, and a severed one need not be fatal if the task's Jacobian is carried by
 another route -- so the rule we draw is to check the relevant tangent map, not to audit path
 structure.\footnote{``Observability'' here means local parameter identifiability (full column rank of the
-scaled sensitivity, a finite Cram\'er-Rao bound) together with input-to-observable sensitivity, not
-classical state observability or controllability of a linear system.} Sever the only path and
+scaled sensitivity, a finite Cram\'er-Rao bound) plus input-to-observable sensitivity, not classical
+state observability or controllability.} Sever the only path and
 $\partial H/\partial\theta_j\equiv0$ identically -- not small, zero -- so the reduced model reports
 the parameter as structurally unidentifiable and an optimal-design step confidently prescribes new
 instrumentation to repair a deficiency the system does not have.
@@ -90,7 +98,8 @@ on~\cite{cranmer2020sbi}. We built exactly that, and wrote it up: the parametric
 ($\mathrm{Pn}{=}0$) model, the Fisher analysis on it, the rank-2 null on
 $\{\mathrm{Ko},\mathrm{Bi}_t\}$, and the E-optimal ``add a temperature channel'' prescription. A
 pre-specified check of the dropped term, with thresholds fixed before the sweep was run, was meant to
-confirm that result; it dissolved it. Sec.~\ref{sec:phantom} is the original analysis, unchanged; the
+confirm that result; it dissolved it. Sec.~\ref{sec:phantom} is the original analysis, unchanged;\footnote{Except that its temperature
+channel is relabelled to the operator actually used, the mean $\langle T\rangle$; no result changed.} the
 rest is the correction. We show the frozen PINN inheriting the phantom; by the same argument any
 estimator trained only on the reduced simulator should inherit it, amortized SBI and neural operators
 included, though we do not demonstrate those -- so a leaderboard-accurate surrogate can encode a
@@ -170,10 +179,10 @@ equation, \emph{at $\mathrm{Pn}{=}0$ the moisture balance is autonomous and Eq.~
 collapses to $-\mathrm{Lu}\,\mathrm{Bi}_m M(0,\tau)$, so
 $\partial H_M/\partial\mathrm{Ko}=\partial H_M/\partial\mathrm{Bi}_t\equiv 0$, $\mathrm{rank}(S)=2$,
 and one mean-temperature channel restores full column rank.} That one-line fact is the whole of the
-reduced-model result; the contribution is what happens when the dropped term returns. Rank is read
-from the scaled columns rather than an eigenvalue ratio -- column $j$ counts as present when
-$\|S_{:j}/\sigma\|>10^{-9}\max_k\|S_{:k}/\sigma\|$ -- so weak-but-nonzero coupling is reported by
-the CR bound and never as a spurious null.
+reduced-model result; the contribution is what happens when the dropped term returns. Rank is read from the
+scaled columns, not an eigenvalue ratio -- column $j$ counts when
+$\|S_{:j}/\sigma\|>10^{-9}\max_k\|S_{:k}/\sigma\|$ -- so weak-but-nonzero coupling is reported by the
+CR bound, never as a spurious null.
 
 \section{What the reduced simulator prescribes ($\mathrm{Pn}{=}0$)}\label{sec:phantom}
 At the nominal $\theta{=}(0.5,2,1,1)$ the moisture-only $\{\mathrm{Ko},\mathrm{Bi}_t\}$ sensitivity
@@ -222,9 +231,9 @@ Over $\mathrm{Pn}\in[10^{-3},10^{-1}]$ the log-log slopes of the two CR bounds a
 $-0.990$ against $-1$ from Eq.~\ref{eq:scaling}, and the CR falls through the $100\%$ usability line
 at a derived rather than measured rate (Fig.~\ref{fig:cross}a, Table~\ref{tab:pn}). Two statements
 must be kept apart. \emph{Analytically}, Eq.~\ref{eq:scaling} removes the exact null wherever
-$a_j(\theta)\neq0$, which is the generic case because $T_0$ carries $\mathrm{Ko}$ and $\mathrm{Bi}_t$
-and the restored $\mathrm{Lu}\,\mathrm{Pn}\,\partial_{\xi\xi}T_0$ is not identically zero; it does not
-exclude isolated $\theta$ at which some $a_j$ vanishes. \emph{Numerically}, $\mathrm{rank}(S){=}4$ at
+$a_j(\theta)\neq0$ -- the generic case, since $T_0$ carries $\mathrm{Ko}$ and $\mathrm{Bi}_t$ and the
+restored $\mathrm{Lu}\,\mathrm{Pn}\,\partial_{\xi\xi}T_0$ is not identically zero -- but does not
+exclude isolated $\theta$ where some $a_j$ vanishes. \emph{Numerically}, $\mathrm{rank}(S){=}4$ at
 every tested $\mathrm{Pn}{>}0$, over the box and the $K{=}40$ schedule. Identifiability is graded, not binary, in three regimes: exactly zero columns at
 $\mathrm{Pn}{=}0$; nonzero but nearly parallel to the $\{\mathrm{Lu},\mathrm{Bi}_m\}$ columns for
 $0<\mathrm{Pn}\!\lesssim\!0.7$ ($|\mathrm{corr}(\mathrm{Ko},\mathrm{Bi}_t)|{=}0.997$ at
@@ -241,31 +250,32 @@ where $\mathrm{Pn}^\star=O(1)$ -- a failure the probe itself flags. Comparing $\
 the plausible range of the dropped coefficient is the operational test: below that range the null is a
 phantom, above it the reduced model's verdict stands. The test settles the \emph{structural} claim --
 identifiability in principle -- not whether the instrument is worth buying. It presumes the dropped
-term is known and restorable with a plausible coefficient range, and $\mathrm{Pn}^\star$ inherits the
-$100\%$ threshold, noise model, schedule and nuisance choice: a check for a \emph{suspected} coupling,
-not a detector of unknown structural error.
+term is known and restorable with a plausible range, and $\mathrm{Pn}^\star$ inherits the $100\%$
+threshold, noise model, schedule and nuisance choice: a check for a \emph{suspected} coupling, not a
+detector of unknown structural error.
 
 \paragraph{Crossover distribution.} Over $256$ Sobol points the crossover has median
 $\mathrm{Pn}^\star{=}0.037$ (interquartile $[0.019,0.089]$), and $88\%$ of the box lies below $0.2$, the bottom of the assumed physical range: for most operating
-conditions the moisture-only cell resolves $\{\mathrm{Ko},\mathrm{Bi}_t\}$ at realistic coupling
-\emph{with $\mathrm{Pn}$ known}, the remaining $12\%$ (low $\mathrm{Lu}$ and $\mathrm{Ko}$) staying
-weakly determined.
+conditions $\{\mathrm{Ko},\mathrm{Bi}_t\}$ cross the $100\%$ CR line at realistic coupling
+\emph{with $\mathrm{Pn}$ known} -- identifiability in principle, not precision, since below
+$\mathrm{Pn}\!\approx\!1$ they stay weakly determined (App.~\ref{app:valid}). The remaining $12\%$
+(low $\mathrm{Lu}$ and $\mathrm{Ko}$) never crosses it.
 
 \begin{figure}[!htbp]\centering
-\includegraphics[width=.80\linewidth]{P_posnov_crossover.png}
-\caption{\textbf{(a)} Moisture-only CR relative std for $\{\mathrm{Ko},\mathrm{Bi}_t\}$ vs.\ the Posnov
-coupling: unidentifiable at $\mathrm{Pn}{=}0$, full rank at every tested $\mathrm{Pn}{>}0$.
-\textbf{(b)} The failure is silent. The reduced model, calibrated over $(\mathrm{Lu},\mathrm{Bi}_m)$
-against the same noisy moisture data, passes a $\chi^2$ goodness-of-fit test up to $\mathrm{Pn}{=}0.35$
-while returning the phantom null throughout. Between the crossover ($0.0996$ at the nominal $\theta$)
-and the top of that band a practitioner has no signal that anything is wrong.}
+\includegraphics[width=.72\linewidth]{P_posnov_crossover.png}
+\caption{\textbf{(a)} Moisture-only CR relative std for $\{\mathrm{Ko},\mathrm{Bi}_t\}$ vs.\ the
+Posnov coupling: unidentifiable at $\mathrm{Pn}{=}0$, full rank at every tested $\mathrm{Pn}{>}0$.
+\textbf{(b)} The failure is silent: the reduced model, calibrated over
+$(\mathrm{Lu},\mathrm{Bi}_m)$ against the same noisy moisture data, passes a $\chi^2$ test up to
+$\mathrm{Pn}{=}0.35$ while returning the phantom null throughout. Between the crossover ($0.0996$ at
+the nominal $\theta$) and the top of that band, nothing signals that anything is wrong.}
 \label{fig:cross}
 \end{figure}
 
 \begin{table}[!htbp]\centering\small
 \caption{Moisture-only identifiability vs.\ Posnov number (nominal $\theta$, $K{=}40$, per-channel
-noise $1\%$ of range). Gain is the ratio of moisture-only to moisture-plus-$\langle T\rangle$ CR.
-$\mathrm{rank}(S){=}2$ at $\mathrm{Pn}{=}0$ and $4$ at every tested $\mathrm{Pn}{>}0$.}
+noise $1\%$ of range). Gain is the moisture-only to moisture-plus-$\langle T\rangle$ CR ratio;
+$\mathrm{rank}(S){=}2$ at $\mathrm{Pn}{=}0$, $4$ at every tested $\mathrm{Pn}{>}0$.}
 \label{tab:pn}
 \begin{tabular}{lcccccc}\toprule
 $\mathrm{Pn}$ & $0.0$ & $0.05$ & $0.1$ & $0.2$ & $0.6$ & $1.0$\\\midrule
@@ -277,77 +287,72 @@ gain from a $T$ channel ($\mathrm{Ko}$) & $\infty$ & $34\times$ & $14\times$ & $
 \end{table}
 
 \section{The failure is silent}\label{sec:silent}
-A visibly mis-predicting model would be caught before its verdict was trusted, and at
-$\mathrm{Pn}{=}0.6$ the reduced model at the true parameters does leave a $17\%$ moisture discrepancy.
-But a practitioner calibrates first, and calibration launders the misspecification into the parameters
-the reduced model \emph{can} see. We generate noisy moisture-only observations from the
-full model at each true $\mathrm{Pn}$, fit $(\mathrm{Lu},\mathrm{Bi}_m)$ under the reduced model within
+At $\mathrm{Pn}{=}0.6$ the reduced model at the true parameters leaves a $17\%$ moisture
+discrepancy, which would be caught before its verdict was trusted. But a practitioner calibrates
+first, and calibration launders the misspecification into the parameters it \emph{can} see. We generate noisy moisture-only observations from the
+full model at each true $\mathrm{Pn}$, fit $(\mathrm{Lu},\mathrm{Bi}_m)$ under the reduced model in
 the operating box, and test the residual against the known per-channel noise ($\chi^2$, $20$ seeds,
-$2K{-}2$ d.o.f.). It passes at $\alpha{=}0.05$ up to $\mathrm{Pn}{=}0.35$ (Fig.~\ref{fig:cross}b), where the median
-$p$-value is $0.44$ and the calibrated discrepancy $0.2\%$, down from $11.9\%$ -- the error absorbed as
-bias in $\mathrm{Lu}$, pulled from $0.5$ to $0.33$, while the Jacobian's sensitive subspace rotates by
-$68^\circ$ and the sensitivity ordering inverts. Throughout, the reduced model reports
-$\mathrm{rank}(S)=2$, $\mathrm{CR}=\infty$ and ``buy a temperature sensor''. The window runs from
-$\mathrm{Pn}^\star{=}0.0996$ to $0.35$, overlapping the assumed range on $[0.2,0.35]$: goodness of fit
-misses the problem because the misspecification is invisible in the observables and lethal only in
-the Jacobian.
+$2K{-}2$ d.o.f.). It passes at $\alpha{=}0.05$ up to $\mathrm{Pn}{=}0.35$ (Fig.~\ref{fig:cross}b),
+where the median $p$-value is $0.44$ and the calibrated discrepancy $0.2\%$, down from $11.9\%$ --
+the error absorbed as bias in $\mathrm{Lu}$, pulled from $0.5$ to $0.33$, while the Jacobian rotates
+and the sensitivity ordering inverts (App.~\ref{app:valid}). Throughout, the reduced model reports $\mathrm{rank}(S)=2$, $\mathrm{CR}=\infty$ and ``buy a temperature sensor''.
+The window runs from $\mathrm{Pn}^\star{=}0.0996$ to $0.35$, overlapping the assumed range on
+$[0.2,0.35]$: goodness of fit misses the problem because the misspecification is invisible in the
+observables and lethal only in the Jacobian.
 
 \section{OSSE: recovery, robustness, and the joint problem}\label{sec:osse}
 The Fisher verdict is estimator-agnostic; we confirm it with an estimator. From the two noisy
 moisture-only channels we recover the ``unobservable'' pair by solver-in-the-loop least squares in
 log-parameter space, from a wrong initialisation, under either forward model
-(Table~\ref{tab:osse}). Under the reduced model the
-estimator is frozen with zero variance across seeds and at every noise level from $0.2\%$ to $5\%$:
-the misfit is exactly flat, so the pair is \emph{structurally impossible} to
-recover. Under the full model the \emph{same} channels recover both to $0.1\%$, and to $0.6\%$ on a
-$4\times$ refined truth grid. Under a genuine instrument misspecification (unmodelled $3\%$ flux-meter
-gain, $0.5\%$ scale bias) $\mathrm{Ko}$ degrades to $12.7\%$, which the temperature channel only
-improves to $9.6\%$.
+(Table~\ref{tab:osse}). Under the reduced model the estimator is frozen with zero variance across
+seeds and at every noise level from $0.2\%$ to $5\%$: the misfit is exactly flat, so the pair is
+\emph{structurally impossible} to recover. Under the full model the \emph{same} channels recover
+both to $0.1\%$ (Table~\ref{tab:osse}). Under a genuine instrument
+misspecification (unmodelled $3\%$ gain, $0.5\%$ bias) $\mathrm{Ko}$ degrades to $12.7\%$, which the
+temperature channel only improves to $9.6\%$.
 
-\paragraph{Validation, and the limit of the claim.} The Cram\'er-Rao bound agrees with the estimator's
-Monte Carlo spread once compared like with like, and a moisture-only fit predicts a withheld
-surface-temperature channel the reduced model cannot (App.~\ref{app:valid}). But local full rank is
-not global identifiability: a five-parameter recovery
-from random initialisations leaves $\mathrm{Bi}_t,\mathrm{Bi}_m$ at $45\%$ and $41\%$, in more than
-one basin. The dissolution is a statement about the $\{\mathrm{Ko},\mathrm{Bi}_t\}$
-null, not that the joint problem is well posed: with $\mathrm{Pn}$ known it is unimodal but well
-determined only near the top of the assumed range (App.~\ref{app:valid}).
+\paragraph{Validation, and the limit of the claim.} The Cram\'er-Rao bound agrees with the
+estimator's Monte Carlo spread once compared like with like, and a moisture-only fit predicts a
+withheld surface-temperature channel the reduced model cannot (App.~\ref{app:valid}). But local full
+rank is not global identifiability: a five-parameter recovery from random initialisations leaves
+$\mathrm{Bi}_t,\mathrm{Bi}_m$ at $45\%$ and $41\%$, in more than one basin. The dissolution concerns
+the $\{\mathrm{Ko},\mathrm{Bi}_t\}$ null, not the well-posedness of the joint problem: with
+$\mathrm{Pn}$ known that is unimodal but well determined only at the strongest coupling we tested,
+$\mathrm{Pn}{=}1$ (App.~\ref{app:valid}).
 
 \section{Implications, mitigation, and conclusion}\label{sec:impl}
-\paragraph{Inheritance and a model-uncertain correction.} Estimators trained on the reduced simulator
-cannot recover a parameter it made invisible, whatever their forward accuracy. Fixing
+\paragraph{Inheritance and a model-uncertain correction.} Estimators trained on the reduced
+simulator cannot recover a parameter it made invisible, whatever their forward accuracy. Fixing
 $\mathrm{Pn}{=}0$ is the degenerate structural prior $p(\mathrm{Pn}){=}\delta_0$; a spike-and-slab
-instead returns uncertainty over $J=\partial H/\partial\theta$ and the sensor ranking, and recovers
-most of the achievable closed-loop performance (App.~\ref{app:control}). What we invalidate is the
-\emph{structural} argument -- that moisture instrumentation is categorically insufficient -- not the
-instrument: under $\mathrm{Pn}$ uncertainty a temperature channel still informs $\mathrm{Pn}$, breaks
-the $\{\mathrm{Ko},\mathrm{Bi}_t\}$ collinearity and cuts the bound at every tested $\mathrm{Pn}{>}0$
-(Table~\ref{tab:pn}); its case must come from the coupled model, not a manufactured null. Fitting
-observations is not enough, because the object that must be right is the tangent map: a discrepancy
-network should learn a conservative cross-field \emph{flux} with parameter--discrepancy
-separation~\cite{plumlee2018orthogonal}, checkable by our two-head control and set out as a
-three-step audit in App.~\ref{app:procedure}.
+instead returns uncertainty over $J=\partial H/\partial\theta$ and the sensor ranking, and tracks the
+matched controller for $\mathrm{Pn}\!\ge\!0.35$, at a cost where the coupling is weak
+(App.~\ref{app:control}). What we invalidate is the \emph{structural} argument -- that moisture
+instrumentation is categorically insufficient -- not the instrument: under $\mathrm{Pn}$ uncertainty
+a temperature channel still informs $\mathrm{Pn}$, breaks the collinearity and cuts the bound at
+every tested $\mathrm{Pn}{>}0$ (Table~\ref{tab:pn}). Nor is fitting observations enough, the object
+that must be right being the tangent map: a discrepancy network should learn a conservative
+cross-field \emph{flux} with parameter--discrepancy separation~\cite{plumlee2018orthogonal},
+checkable by our two-head control and set out as a three-step audit in App.~\ref{app:procedure}.
 
 \paragraph{Phantom uncontrollability.} The severed path corrupts intervention as well as inference.
 With the hot-air temperature $u$ manipulated, the reduced plant advances moisture by an operator
 referencing neither $u$ nor $T$: $\partial\bar M/\partial u\equiv0$ to machine precision while the
 actuator keeps full authority over temperature, returning at first order like the parameter Jacobian.
 The consequence is a decision, not a bound: at $\mathrm{Pn}{=}0.35$, inside the silent band, a
-reduced-model controller pays $8\times$ the matched controller's cost while the objective component
-its model treats as controllable improves (App.~\ref{app:control}).
+reduced-model controller pays $8\times$ the matched controller's cost while the component its own
+model treats as controllable improves (App.~\ref{app:control}).
 
 \paragraph{Limitations and the lesson.} All results are in silico from one solver family and one
-coupled system; a second system, and output feedback in place of our full-state feedback, are future
-work. The Posnov range is assumed. The silent band is measured under one noise model, schedule and
-box, with its $\chi^2$ test evaluated on the calibration data and the two fitted parameters removed
-from the d.o.f. The arms of App.~\ref{app:e1} all train on reduced physics, so their failure is
-expected by construction. The lesson: validating a reduced simulator's \emph{outputs} is insufficient
-when inference or control depends on tangent maps it may have severed.
+coupled system; a second system and output feedback are future work. The Posnov range is assumed.
+The silent band uses one noise model, schedule and box, with its $\chi^2$ test on the calibration
+data and the two fitted parameters removed from the d.o.f. The lesson: validating a reduced
+simulator's \emph{outputs} is insufficient when inference or control depends on tangent maps it has
+severed.
 
 \begin{ack}
-The question this paper answers was suggested by the Institut f\"ur Textiltechnik (ITA) of RWTH
-Aachen University, and I thank Flemming Heuvel for the discussions that shaped it. All modelling,
-implementation, experiments and analysis reported here are my own.
+The question was suggested by the Institut f\"ur Textiltechnik (ITA) of RWTH Aachen University, and
+I thank Flemming Heuvel for the discussions that shaped it. All modelling, implementation,
+experiments and analysis reported here are my own.
 \end{ack}
 
 {\small\bibliographystyle{plain}\bibliography{references}}
@@ -389,6 +394,11 @@ $\mathrm{Lu},\mathrm{Bi}_m$ also unknown, while the estimator holds them fixed. 
 \emph{conditional} bound is $0.4\%$ against a Monte Carlo spread of $0.37\%$, which is what validates
 the Fisher machinery the rest of the paper rests on.
 
+\textbf{Where the calibration error goes.} At the top of the silent band the misfit is absorbed as
+bias in the parameters the reduced model can see: $\mathrm{Lu}$ is pulled from $0.5$ to $0.33$, the
+Jacobian's sensitive subspace rotates by $68^\circ$, and the sensitivity ordering inverts -- so the
+calibrated model is wrong in a way no residual reveals.
+
 \textbf{A withheld instrument.} Predicting a channel never fitted separates physical recovery from
 compensation within the moisture channels. From the moisture-only fit the full model reproduces the
 surface-temperature trace $T(0,\tau)$ to $0.0\%$ on a matched grid and $2.1\%$ under the instrument
@@ -414,8 +424,9 @@ to a few per cent; at the canonical $\mathrm{Pn}{=}0.6$ benchmark $\mathrm{Ko}$ 
 reach only $13\%$ and $20\%$; at $\mathrm{Pn}{=}0.2$ they are not usefully determined ($36\%$,
 $48\%$). Every median estimate is interior to the box, so this is the collinearity of
 Sec.~\ref{sec:dissolve} rather than a boundary artefact. Dissolving the null is therefore not a claim
-that the moisture-only cell pins down the whole parameter vector: it does so only toward the top of
-the assumed range, which is the other half of the scoping in Sec.~\ref{sec:impl}.
+that the moisture-only cell pins down the whole parameter vector: it does so only at
+$\mathrm{Pn}{=}1$, the strongest coupling we tested, which is the other half of the scoping in
+Sec.~\ref{sec:impl}. The assumed range runs to $\mathrm{Pn}{=}2$, which we did not test.
 
 \begin{table}[h]\centering\footnotesize
 \setlength{\tabcolsep}{5pt}
@@ -456,17 +467,15 @@ measured is a \emph{leakage floor} rather than an exact zero.
 This appendix exists to confirm that analytic claim on a finitely-trained network, not to benchmark
 mitigations: every arm trains on the reduced operator, so every arm is \emph{expected} to fail, and
 an arm doing better here would mean its optimisation left less residue, not that it recovered the
-severed physics. Data from the coupled system or an embedded discrepancy term is the fix, and is out
-of scope by construction.
+severed physics. Data from the coupled system, or an embedded discrepancy term, would reintroduce
+the missing pathway and is the actual fix -- that is the point of the mitigation in
+Sec.~\ref{sec:impl} -- and is out of scope here by construction.
 
 We test it against the remedies a PINN-literate reader would reach for. Five arms train on the same
 reduced physics with the same budget ($12$k Adam then $800$ L-BFGS steps, width $96$, depth $5$,
 $4000$ collocation points, three seeds) and differ only in objective or architecture; the last is
 deliberately the most favourable case, a shared trunk whose moisture head receives the temperature
-head's output and its spatial gradient as explicit inputs. The conclusion is scoped to
-\emph{physics-only} training against the reduced operator: data from the coupled system, or an
-embedded discrepancy term, would reintroduce the missing pathway -- that is the point of the
-mitigation in Sec.~\ref{sec:impl}.
+head's output and its spatial gradient as explicit inputs.
 
 \input{e1_table}
 
