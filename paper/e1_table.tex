@@ -1,0 +1,13 @@
+\begin{table}[h]\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{None of the tested objectives or architectures restores the severed pathway. All arms train on the \emph{same} reduced ($\mathrm{Pn}{=}0$) physics and differ only in objective or architecture; mean $\pm$ s.d.\ over 3 seeds. The solver's reduced-model value for $\|\partial\langle M\rangle/\partial\log\mathrm{Ko}\|$ is exactly $0$; under the true model ($\mathrm{Pn}{=}0.6$) it is $0.372$. ``Leakage'' is the severed-pathway sensitivity as a fraction of the intact $\mathrm{Ko}\!\to\!\langle T\rangle$ pathway of the same network, given in the preceding column. $\dagger$: one of the three baseline seeds does not converge (per-seed leakage $1.8$, $7.3$, $137.5\%$), so its mean would not summarise a stable quantity and its denominator is itself unreliable; the median is given instead.}
+\label{tab:e1}
+\begin{tabular}{lccccc}\toprule
+arm & fwd rel-$L_2$ & $\|\partial_{\log\mathrm{Ko}}\langle M\rangle\|$ & $\|\partial_{\log\mathrm{Ko}}\langle T\rangle\|$ & leakage & vs.\ true\\\midrule
+baseline residual & $0.066\pm0.072$ & $0.233\pm0.202$ & $1.52$ & $7.3\%^\dagger$ & $63\%$\\
+$+$ gradient-enhanced penalty & $0.008\pm0.004$ & $0.121\pm0.075$ & $2.16$ & $5.8\pm3.8\%$ & $32\%$\\
+$+$ gradient-norm balancing & $0.008\pm0.003$ & $0.027\pm0.018$ & $2.33$ & $1.1\pm0.7\%$ & $7\%$\\
+$+$ causal weighting & $0.013\pm0.005$ & $0.115\pm0.064$ & $2.09$ & $5.7\pm3.4\%$ & $31\%$\\
+shared trunk, $T$ and $\partial_\xi T$ to the $M$ head & $0.010\pm0.002$ & $0.123\pm0.049$ & $2.14$ & $5.9\pm2.5\%$ & $33\%$\\
+\bottomrule\end{tabular}
+\end{table}

@@ -1,0 +1,13 @@
+{
+  "out": "runs/parametric",
+  "val_dir": "data/param_val",
+  "hidden": 96,
+  "depth": 6,
+  "n_coll": 8000,
+  "adam_iters": 12000,
+  "lbfgs_iters": 1500,
+  "seed": 42,
+  "in_dim": 6,
+  "fourier": false,
+  "no_hard_ic": false
+}
